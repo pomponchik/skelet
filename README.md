@@ -21,3 +21,6 @@ Additional features:
 - Nested classes
 - Reading parameters from the CLI
 - Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
+- Secret fields
+- 'yaml' format support
+- 'json' format support
