@@ -1,14 +1,14 @@
 from skelet import Storage, Field
 
 import pytest
-import full_match
+from full_match import match
 
 
 def test_try_to_get_default_value_from_class_inherited_from_storage():
     class SomeClass(Storage):
         field = Field(42)
 
-    with pytest.raises(TypeError, match=full_match('Field "field" can only be used in Storage instances.')):
+    with pytest.raises(TypeError, match=match('Field "field" can only be used in Storage instances.')):
         SomeClass.field
 
 
@@ -85,7 +85,7 @@ def test_try_to_delete_field():
     class SomeClass(Storage):
         field = Field(42)
 
-    with pytest.raises(AttributeError, match=full_match("You can't delete the \"field\" attribute.")):
+    with pytest.raises(AttributeError, match=match("You can't delete the \"field\" attribute.")):
         del SomeClass().field
 
 
@@ -95,7 +95,7 @@ def test_try_to_set_new_value_to_read_only_attribute():
 
     object = SomeClass()
 
-    with pytest.raises(AttributeError, match=full_match('Field "field" is read-only.')):
+    with pytest.raises(AttributeError, match=match('Field "field" is read-only.')):
         object.field = 43
 
     assert object.field == 42
