@@ -102,3 +102,4 @@ def test_try_to_set_new_value_to_read_only_attribute():
 
 
 # TODO: test thread safety
+# TODO: use logging lock to sure that we use per-field locks
