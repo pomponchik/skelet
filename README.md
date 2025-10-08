@@ -24,3 +24,4 @@ Additional features:
 - Secret fields
 - 'yaml' format support
 - 'json' format support
+- Turn-off thread safety
