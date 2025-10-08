@@ -19,8 +19,6 @@ def test_try_to_use_field_outside_storage():
 
 
 def test_try_to_use_one_field_in_two_storage_classes():
-    field = Field(42)
-
     class FirstClass(Storage):
         field = Field(42)
 
