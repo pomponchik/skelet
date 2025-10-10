@@ -123,14 +123,16 @@ def test_get_from_inner_dict_is_thread_safe_and_use_per_instance_locks():
     field = SomeClass.field
 
     field.lock = LockTraceWrapper(field.lock)
-    storage.lock = LockTraceWrapper(storage.lock)
+    print(dir(storage))
+    storage._lock = LockTraceWrapper(storage._lock)
     class PseudoDict:
         def get(self, key, default):
-            storage.lock.notify('get')
+            storage._lock.notify('get')
+            field.lock.notify('get')
             return 43
     storage.__fields__ = PseudoDict()
 
     assert storage.field == 43
-    assert storage.lock.was_event_locked('get')
+    assert storage._lock.was_event_locked('get')
 
-    assert field.lock.was_event_locked('get') and not field.lock.trace
+    assert not field.lock.was_event_locked('get') and field.lock.trace

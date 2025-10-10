@@ -35,14 +35,14 @@ class Field(Generic[ValueType]):
         if not isinstance(instance, Storage):
             raise TypeError(f"Field \"{self.name}\" can only be used in Storage instances.")
 
-        with instance.lock:
+        with instance._lock:
             return instance.__fields__.get(cast(str, self.name), self.default)
 
     def __set__(self, instance: Storage, value: ValueType) -> None:
         if self.read_only:
             raise AttributeError(f'Field "{self.name}" is read-only.')
 
-        with instance.lock:
+        with instance._lock:
             instance.__fields__[cast(str, self.name)] = value
 
     def __delete__(self, instance: Any) -> None:
