@@ -29,6 +29,8 @@ class Field(Generic[ValueType]):
             self.name = name
             self.base_class = owner
 
+            self.set_field_names(owner, name)
+
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
         if instance is None:
             return self
@@ -47,3 +49,23 @@ class Field(Generic[ValueType]):
 
     def __delete__(self, instance: Any) -> None:
         raise AttributeError(f"You can't delete the \"{self.name}\" attribute.")
+
+    def set_field_names(self, owner: Type[Storage], name: str) -> None:
+        if '__field_names__' not in owner.__dict__:
+            owner.__field_names__ = []
+            known_names = set()
+            for parent in owner.__mro__:
+                if parent is owner:
+                    continue
+                elif parent is Storage:
+                    break
+                else:
+                    for field_name in parent.__field_names__:
+                        if field_name not in known_names:
+                            known_names.add(field_name)
+                            owner.__field_names__.append(field_name)
+        else:
+            known_names = set(owner.__field_names__)
+
+        if name not in known_names:
+            owner.__field_names__.append(name)
