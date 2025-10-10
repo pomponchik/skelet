@@ -350,7 +350,6 @@ def test_set_name_uses_per_field_lock():
 
     field = Field(42)
     field.lock = LockTraceWrapper(field.lock)
-
     field.set_field_names = lambda x, y: field.lock.notify('get')
 
     field.__set_name__(SomeClass, 'field')
