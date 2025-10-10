@@ -300,9 +300,6 @@ def test_try_to_set_not_defined_field_in_init():
         storage = StorageChild(field_3=44)
 
 
-# TODO: test thread safety
-# TODO: use logging lock to sure that we use per-instance locks
-
 def test_get_from_inner_dict_is_thread_safe_and_use_per_instance_locks():
     class SomeClass(Storage):
         field = Field(42)
