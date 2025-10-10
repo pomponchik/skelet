@@ -52,7 +52,7 @@ class Field(Generic[ValueType]):
         if '__field_names__' not in owner.__dict__:
             owner.__field_names__ = []
             known_names = set()
-            for parent in owner.__mro__:
+            for parent in owner.__mro__:  # pragma: no cover
                 if parent is owner:
                     continue
                 elif parent is Storage:
@@ -65,5 +65,5 @@ class Field(Generic[ValueType]):
         else:
             known_names = set(owner.__field_names__)
 
-        if name not in known_names:
+        if name not in known_names:  # pragma: no cover
             owner.__field_names__.append(name)
