@@ -15,9 +15,14 @@ def test_try_to_get_default_value_from_class_inherited_from_storage():
 
 
 def test_try_to_use_field_outside_storage():
-    with pytest.raises(RuntimeError):
-        class SomeClass:
-            field = Field(42)
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass:
+                field = Field(42)
+    else:
+        with pytest.raises(TypeError):
+            class SomeClass:
+                field = Field(42)
 
 
 def test_try_to_use_one_field_in_two_storage_classes():
