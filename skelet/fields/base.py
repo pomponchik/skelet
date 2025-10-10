@@ -58,7 +58,7 @@ class Field(Generic[ValueType]):
                 elif parent is Storage:
                     break
                 else:
-                    for field_name in parent.__field_names__:
+                    for field_name in cast(Storage, parent).__field_names__:
                         if field_name not in known_names:
                             known_names.add(field_name)
                             owner.__field_names__.append(field_name)
