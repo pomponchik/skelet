@@ -14,7 +14,8 @@ Additional features:
 
 - [ ] The ability to validate any fields (+ a set of standard validators for basic field types)
 - [ ] The ability to set a callback to change any of the fields + a mutex to a mutable field to ensure thread safety)
-- [ ] Shared mutexes for multiple fields
+- [ ] A separate mutex for each field
+- [ ] The ability to share a single mutex into several fields
 - [ ] Typing support
 - [ ] Checking fields for conflicts
 - [ ] Converting types from one to another
