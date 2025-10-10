@@ -297,7 +297,7 @@ def test_try_to_set_not_defined_field_in_init():
         field_2 = Field(43)
 
     with pytest.raises(KeyError, match=r'The "field_3" field is not defined.'):
-        storage = StorageChild(field_3=44)
+        StorageChild(field_3=44)
 
 
 def test_get_from_inner_dict_is_thread_safe_and_use_per_instance_locks():
