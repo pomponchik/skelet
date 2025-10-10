@@ -34,8 +34,6 @@ class Field(Generic[ValueType]):
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
         if instance is None:
             return self
-        if not isinstance(instance, Storage):
-            raise TypeError(f"Field \"{self.name}\" can only be used in Storage instances.")
 
         with instance._lock:
             return instance.__fields__.get(cast(str, self.name), self.default)
