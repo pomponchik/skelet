@@ -12,7 +12,7 @@ class Storage:
         self.__fields__: Dict[str, Any] = {}
         self._lock = Lock()
 
-        deduplicated_fields = set(self.__fields__)
+        deduplicated_fields = set(self.__field_names__)
         for key, value in kwargs.items():
             if key not in deduplicated_fields:
                 raise KeyError(f'The "{key}" field is not defined.')
