@@ -1,4 +1,3 @@
-from math import isinf
 import sys
 
 import pytest
