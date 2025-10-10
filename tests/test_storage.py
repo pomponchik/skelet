@@ -1,17 +1,18 @@
+from math import isinf
 import sys
-
-from skelet import Storage, Field
 
 import pytest
 from full_match import match
+from locklib import LockTraceWrapper
+
+from skelet import Storage, Field
 
 
-def test_try_to_get_default_value_from_class_inherited_from_storage():
+def test_try_to_get_descriptor_object_from_class_inherited_from_storage():
     class SomeClass(Storage):
         field = Field(42)
 
-    with pytest.raises(TypeError, match=match('Field "field" can only be used in Storage instances.')):
-        SomeClass.field
+    assert isinstance(SomeClass.field, Field)
 
 
 def test_try_to_use_field_outside_storage():
@@ -112,4 +113,24 @@ def test_try_to_set_new_value_to_read_only_attribute():
 
 
 # TODO: test thread safety
-# TODO: use logging lock to sure that we use per-field locks
+# TODO: use logging lock to sure that we use per-instance locks
+
+def test_get_from_inner_dict_is_thread_safe_and_use_per_instance_locks():
+    class SomeClass(Storage):
+        field = Field(42)
+
+    storage = SomeClass()
+    field = SomeClass.field
+
+    field.lock = LockTraceWrapper(field.lock)
+    storage.lock = LockTraceWrapper(storage.lock)
+    class PseudoDict:
+        def get(self, key, default):
+            storage.lock.notify('get')
+            return 43
+    storage.__fields__ = PseudoDict()
+
+    assert storage.field == 43
+    assert storage.lock.was_event_locked('get')
+
+    assert field.lock.was_event_locked('get') and not field.lock.trace
