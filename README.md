@@ -26,7 +26,8 @@ Additional features:
 - [ ] Secret fields
 - [ ] 'yaml' format support
 - [ ] 'json' format support
-- [ ] Turn-off thread safety
+- [ ] The ability to turn-off thread safety
+- [ ] The ability to disable type checking for a class through class arguments
 
 
 https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
