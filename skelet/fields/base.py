@@ -43,6 +43,8 @@ class Field(Generic[ValueType]):
         if self.read_only:
             raise AttributeError(f'Field "{self.name}" is read-only.')
 
+        self.check_type_hints(self.base_class, self.name, value)
+
         with instance._lock:
             instance.__fields__[cast(str, self.name)] = value
 
@@ -76,4 +78,4 @@ class Field(Generic[ValueType]):
             return
 
         if not isinstance(value, type_hint):
-            raise TypeError(f'The default value must be an instance of the "{type_hint.__name__}" type.')
+            raise TypeError(f'The value must be an instance of the "{type_hint.__name__}" type.')

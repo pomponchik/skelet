@@ -355,3 +355,27 @@ def test_set_name_uses_per_field_lock():
     field.__set_name__(SomeClass, 'field')
 
     assert field.lock.was_event_locked('get') and field.lock.trace
+
+
+def test_simple_type_check_failed_when_set():
+    class SomeClass(Storage):
+        field: int = Field(15)
+
+    instance = SomeClass()
+
+    with pytest.raises(TypeError, match=match('The value must be an instance of the "int" type.')):
+        instance.field = '15'
+
+    with pytest.raises(TypeError, match=match('The value must be an instance of the "int" type.')):
+        instance.field = 15.0
+
+
+def test_simple_type_check_failed_when_set_bool_if_expected_int():
+    class SomeClass(Storage):
+        field: int = Field(15)
+
+    instance = SomeClass()
+
+    instance.field = True
+
+    assert instance.field is True
