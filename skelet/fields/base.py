@@ -43,7 +43,7 @@ class Field(Generic[ValueType]):
         if self.read_only:
             raise AttributeError(f'Field "{self.name}" is read-only.')
 
-        self.check_type_hints(self.base_class, self.name, value)
+        self.check_type_hints(cast(Type[Storage], self.base_class), cast(str, self.name), value)
 
         with instance._lock:
             instance.__fields__[cast(str, self.name)] = value
