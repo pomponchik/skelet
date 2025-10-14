@@ -11,17 +11,17 @@ It's ready now::
 - [x] Read only fields
 - [x] Typing support
 - [x] Checking field names (prohibit underscores at the beginning)
+- [x] Documenting fields
 
 To do:
 
-- [ ] Documenting fields
-- [ ] The specified sections in the `pyproject.toml` file
-- [ ] One or more separate `toml` files
 - [ ] The ability to validate any fields (+ a set of standard validators for basic field types)
 - [ ] The ability to set a callback to change any of the fields + a mutex to a mutable field to ensure thread safety)
 - [ ] A separate mutex for each field
-- [ ] The ability to share a single mutex into several fields
 - [ ] Checking fields for conflicts
+- [ ] The specified sections in the `pyproject.toml` file
+- [ ] One or more separate `toml` files
+- [ ] The ability to share a single mutex into several fields
 - [ ] Converting types from one to another
 - [ ] Subtraction of environment variables
 - [ ] Class inheritance support
