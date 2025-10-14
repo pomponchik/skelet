@@ -21,6 +21,9 @@ class Field(Generic[ValueType]):
         self.lock: ContextLockProtocol = Lock()
 
     def __set_name__(self, owner: Type[Storage], name: str) -> None:
+        if name.startswith('_'):
+            raise ValueError(f'Field name "{name}" cannot start with an underscore.')
+
         with self.lock:
             if self.base_class is not None:
                 raise TypeError(f'Field "{name}" cannot be used in {owner.__name__} because it is already used in {self.base_class.__name__}.')

@@ -468,3 +468,14 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
     instance = SecondClass(field=1000)
 
     assert instance.field == 1000
+
+
+def test_try_to_use_underscored_name_for_field():
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass(Storage):
+                _field: int = Field(15)
+    else:
+        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.')):
+            class SomeClass(Storage):
+                _field: int = Field(15)
