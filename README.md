@@ -10,10 +10,10 @@ It's ready now::
 - [x] Values that are set during operation for class attributes
 - [x] Read only fields
 - [x] Typing support
+- [x] Checking field names (prohibit underscores at the beginning)
 
 To do:
 
-- [ ] Checking field names (prohibit underscores at the beginning)
 - [ ] Documenting fields
 - [ ] The specified sections in the `pyproject.toml` file
 - [ ] One or more separate `toml` files
