@@ -476,6 +476,6 @@ def test_try_to_use_underscored_name_for_field():
             class SomeClass(Storage):
                 _field: int = Field(15)
     else:
-        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.')):
+        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.\nError calling __set_name__ on \'Field\' instance \'_field\' in \'SomeClass\'')):
             class SomeClass(Storage):
                 _field: int = Field(15)
