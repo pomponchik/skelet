@@ -443,7 +443,7 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
     class SomeClass(Storage):
         field: Optional[int] = Field(15)
 
-    if sys.version_info < (3, 9):
+    if sys.version_info < (3, 10):
         with pytest.raises(AttributeError):
             SomeClass(field='kek')
     else:
