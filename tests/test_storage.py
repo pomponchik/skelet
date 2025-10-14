@@ -1,3 +1,4 @@
+from bisect import insort
 import sys
 
 import pytest
@@ -413,3 +414,11 @@ def test_type_check_when_define_default_not_failed():
 
     assert SomeClass().field == 15
     assert type(SomeClass().field) is int
+
+
+def test_type_check_when_redefine_defaults_initing_new_object_failed():
+    class SomeClass(Storage):
+        field: int = Field(15)
+
+    with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type int.')):
+        SomeClass(field='kek')
