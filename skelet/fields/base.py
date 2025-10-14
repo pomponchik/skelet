@@ -2,6 +2,7 @@ from typing import TypeVar, Type, Any, Optional, Generic, get_type_hints, cast
 from threading import Lock
 
 from locklib import ContextLockProtocol
+from simtypes import check
 
 from skelet.storage import Storage
 
@@ -72,10 +73,13 @@ class Field(Generic[ValueType]):
             owner.__field_names__.append(name)
 
     def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType) -> None:
-        type_hint = get_type_hints(owner).get(name)
+        class SecondNone:
+            pass
 
-        if type_hint is None:
+        type_hint = get_type_hints(owner).get(name, SecondNone())
+
+        if isinstance(type_hint, SecondNone):
             return
 
-        if not isinstance(value, type_hint):
-            raise TypeError(f'The value must be an instance of the "{type_hint.__name__}" type.')
+        if not check(type_hint, value):
+            raise TypeError(f'The value "{value}" ({type(value).__name__}) of the "{name}" field does not match the type {type_hint.__name__}.')

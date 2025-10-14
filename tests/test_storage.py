@@ -363,10 +363,10 @@ def test_simple_type_check_failed_when_set():
 
     instance = SomeClass()
 
-    with pytest.raises(TypeError, match=match('The value must be an instance of the "int" type.')):
+    with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field does not match the type int.')):
         instance.field = '15'
 
-    with pytest.raises(TypeError, match=match('The value must be an instance of the "int" type.')):
+    with pytest.raises(TypeError, match=match('The value "15.0" (float) of the "field" field does not match the type int.')):
         instance.field = 15.0
 
 
