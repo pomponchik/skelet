@@ -12,10 +12,10 @@ It's ready now::
 - [x] Typing support
 - [x] Checking field names (prohibit underscores at the beginning)
 - [x] Documenting fields
+- [x] The ability to validate any fields
 
 To do:
 
-- [ ] The ability to validate any fields (+ a set of standard validators for basic field types)
 - [ ] The ability to set a callback to change any of the fields + a mutex to a mutable field to ensure thread safety)
 - [ ] A separate mutex for each field
 - [ ] Checking fields for conflicts
@@ -32,6 +32,7 @@ To do:
 - [ ] 'yaml' format support
 - [ ] 'json' format support
 - [ ] The ability to turn-off thread safety
+- [ ] A set of standard validators for basic field types
 
 
 Links to add here:
