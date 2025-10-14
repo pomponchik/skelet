@@ -106,4 +106,4 @@ class Field(Generic[ValueType]):
                         raise ValueError(message)
             else:
                 if not self.validation(value):
-                    raise ValueError(f'The value "{value}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation function.')
+                    raise ValueError(f'The value "{value}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
