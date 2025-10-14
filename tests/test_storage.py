@@ -96,7 +96,15 @@ def test_try_to_delete_field():
     class SomeClass(Storage):
         field = Field(42)
 
-    with pytest.raises(AttributeError, match=match("You can't delete the \"field\" attribute.")):
+    with pytest.raises(AttributeError, match=match('You can\'t delete the "field" field value.')):
+        del SomeClass().field
+
+
+def test_try_to_delete_field_with_doc():
+    class SomeClass(Storage):
+        field = Field(42, doc='some doc')
+
+    with pytest.raises(AttributeError, match=match('You can\'t delete the "field" field (some doc) value.')):
         del SomeClass().field
 
 
@@ -106,7 +114,19 @@ def test_try_to_set_new_value_to_read_only_attribute():
 
     object = SomeClass()
 
-    with pytest.raises(AttributeError, match=match('Field "field" is read-only.')):
+    with pytest.raises(AttributeError, match=match('"field" field is read-only.')):
+        object.field = 43
+
+    assert object.field == 42
+
+
+def test_try_to_set_new_value_to_read_only_attribute_with_doc():
+    class SomeClass(Storage):
+        field = Field(42, read_only=True, doc='some doc')
+
+    object = SomeClass()
+
+    with pytest.raises(AttributeError, match=match('"field" field (some doc) is read-only.')):
         object.field = 43
 
     assert object.field == 42
