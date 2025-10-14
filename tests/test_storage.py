@@ -405,6 +405,22 @@ def test_simple_type_check_failed_when_set():
     assert type(instance.field) is int
 
 
+def test_simple_type_check_failed_when_set_with_doc():
+    class SomeClass(Storage):
+        field: int = Field(15, doc='some doc')
+
+    instance = SomeClass()
+
+    with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field (some doc) does not match the type int.')):
+        instance.field = '15'
+
+    with pytest.raises(TypeError, match=match('The value "15.0" (float) of the "field" field (some doc) does not match the type int.')):
+        instance.field = 15.0
+
+    assert instance.field == 15
+    assert type(instance.field) is int
+
+
 def test_simple_type_check_not_failed_when_set():
     class SomeClass(Storage):
         field: int = Field(15)
@@ -428,6 +444,17 @@ def test_type_check_when_define_default_failed():
                 field: int = Field('15')
 
 
+def test_type_check_when_define_default_failed_with_doc():
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass(Storage):
+                field: int = Field('15', doc='some doc')
+    else:
+        with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field (some doc) does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+            class SomeClass(Storage):
+                field: int = Field('15', doc='some doc')
+
+
 def test_type_check_when_define_default_not_failed():
     class SomeClass(Storage):
         field: int = Field(15)
@@ -441,6 +468,14 @@ def test_type_check_when_redefine_defaults_initing_new_object_failed():
         field: int = Field(15)
 
     with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type int.')):
+        SomeClass(field='kek')
+
+
+def test_type_check_when_redefine_defaults_initing_new_object_failed_with_doc():
+    class SomeClass(Storage):
+        field: int = Field(15, doc='some doc')
+
+    with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type int.')):
         SomeClass(field='kek')
 
 
@@ -498,6 +533,22 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
     assert instance.field == 1000
 
 
+
+def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_failed_with_doc():
+    class SomeClass(Storage):
+        field: Optional[int] = Field(15, doc='some doc')
+
+    if sys.version_info < (3, 10):
+        with pytest.raises(AttributeError):
+            SomeClass(field='kek')
+    elif sys.version_info < (3, 14):
+        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type Optional.')):
+            SomeClass(field='kek')
+    else:
+        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type Union.')):
+            SomeClass(field='kek')
+
+
 def test_try_to_use_underscored_name_for_field():
     if sys.version_info < (3, 12):
         with pytest.raises(RuntimeError):
@@ -507,3 +558,14 @@ def test_try_to_use_underscored_name_for_field():
         with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.\nError calling __set_name__ on \'Field\' instance \'_field\' in \'SomeClass\'')):
             class SomeClass(Storage):
                 _field: int = Field(15)
+
+
+def test_try_to_use_underscored_name_for_field_with_doc():
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass(Storage):
+                _field: int = Field(15, doc='some doc')
+    else:
+        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.\nError calling __set_name__ on \'Field\' instance \'_field\' in \'SomeClass\'')):
+            class SomeClass(Storage):
+                _field: int = Field(15, doc='some doc')
