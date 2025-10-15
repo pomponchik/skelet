@@ -745,3 +745,18 @@ def test_validation_when_set_is_not_under_lock():
     assert instance.field == 5
 
     assert not instance.__locks__['field'].was_event_locked('kek')
+
+
+def test_type_check_when_set_is_not_under_lock():
+    class SomeClass(Storage):
+        field: int = Field(10, validation=lambda value: value > 0)
+
+    instance = SomeClass()
+
+    instance.__locks__['field'] = LockTraceWrapper(instance.__locks__['field'])
+    SomeClass.field.check_type_hints = lambda x, y, z: instance.__locks__['field'].notify('kek')
+    instance.field = 5
+
+    assert instance.field == 5
+
+    assert not instance.__locks__['field'].was_event_locked('kek')
