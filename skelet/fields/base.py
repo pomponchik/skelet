@@ -38,7 +38,7 @@ class Field(Generic[ValueType]):
 
             self.set_field_names(owner, name)
             self.check_type_hints(owner, name, self.default)
-            if self.check_first_time:  # pragma: no branch
+            if self.check_first_time:
                 self.check_value(self.default)
 
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
