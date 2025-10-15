@@ -11,12 +11,12 @@ ValueType = TypeVar('ValueType')
 
 # TODO: use per-field locks to improve thread safety
 class Field(Generic[ValueType]):
-    def __init__(self, default: ValueType, read_only: bool = False, doc: Optional[str] = None, validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None, check_first_time: bool = True) -> None:
+    def __init__(self, default: ValueType, read_only: bool = False, doc: Optional[str] = None, validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None, validate_default: bool = True) -> None:
         self.default = default
         self.read_only = read_only
         self.doc = doc
         self.validation = validation
-        self.check_first_time = check_first_time
+        self.validate_default = validate_default
 
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None
@@ -38,7 +38,7 @@ class Field(Generic[ValueType]):
 
             self.set_field_names(owner, name)
             self.check_type_hints(owner, name, self.default)
-            if self.check_first_time:
+            if self.validate_default:
                 self.check_value(self.default)
 
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:

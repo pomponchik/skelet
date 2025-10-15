@@ -727,6 +727,6 @@ def test_validation_function_failed_when_default_with_doc():
 )
 def test_validation_function_not_failed_when_default_because_no_check_first_time(addictional_parameters):
     class SomeClass(Storage):
-        field: int = Field(-15, validation=lambda value: value > 0, check_first_time=False, **addictional_parameters)
+        field: int = Field(-15, validation=lambda value: value > 0, validate_default=False, **addictional_parameters)
 
     assert SomeClass().field == -15
