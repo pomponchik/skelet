@@ -16,8 +16,8 @@ It's ready now::
 
 To do:
 
-- [ ] The ability to set a callback to change any of the fields + a mutex to a mutable field to ensure thread safety)
 - [ ] A separate mutex for each field
+- [ ] The ability to set a callback to change any of the fields + a mutex to a mutable field to ensure thread safety)
 - [ ] Checking fields for conflicts
 - [ ] Secret fields
 - [ ] The ability to disable type checking for a class through class arguments
