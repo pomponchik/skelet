@@ -705,3 +705,14 @@ def test_validation_function_failed_when_default():
         with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field does not match the validation.')):
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0)
+
+
+def test_validation_function_failed_when_default_with_doc():
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass(Storage):
+                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
+    else:
+        with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field (some doc) does not match the validation.')):
+            class SomeClass(Storage):
+                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
