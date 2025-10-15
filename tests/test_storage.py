@@ -713,7 +713,7 @@ def test_validation_function_failed_when_default_with_doc():
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
     else:
-        with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field (some doc) does not match the validation.')):
+        with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field (some doc) does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
 
