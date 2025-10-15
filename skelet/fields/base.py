@@ -109,4 +109,4 @@ class Field(Generic[ValueType]):
                     raise ValueError(f'The value "{value}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
 
     def get_field_lock(self, instance: Storage) -> ContextLockProtocol:
-        return instance.__locks__[self.name]
+        return instance.__locks__[cast(str, self.name)]
