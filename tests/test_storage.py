@@ -716,3 +716,17 @@ def test_validation_function_failed_when_default_with_doc():
         with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field (some doc) does not match the validation.')):
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
+
+
+@pytest.mark.parametrize(
+    ['addictional_parameters'],
+    [
+        ({},),
+        ({'doc': 'some doc'},),
+    ],
+)
+def test_validation_function_not_failed_when_default_because_no_check_first_time(addictional_parameters):
+    class SomeClass(Storage):
+        field: int = Field(-15, validation=lambda value: value > 0, check_first_time=False, **addictional_parameters)
+
+    assert SomeClass().field == -15
