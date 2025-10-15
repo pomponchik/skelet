@@ -38,7 +38,7 @@ class Field(Generic[ValueType]):
 
             self.set_field_names(owner, name)
             self.check_type_hints(owner, name, self.default)
-            if self.check_first_time:
+            if self.check_first_time:  # pragma: no branch
                 self.check_value(self.default)
 
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
@@ -65,7 +65,7 @@ class Field(Generic[ValueType]):
         if '__field_names__' not in owner.__dict__:
             owner.__field_names__ = []
             known_names = set()
-            for parent in owner.__mro__:  # pragma: no cover
+            for parent in owner.__mro__:  # pragma: no branch
                 if parent is owner:
                     continue
                 elif parent is Storage:
@@ -78,7 +78,7 @@ class Field(Generic[ValueType]):
         else:
             known_names = set(owner.__field_names__)
 
-        if name not in known_names:  # pragma: no cover
+        if name not in known_names:  # pragma: no branch
             owner.__field_names__.append(name)
 
     def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType) -> None:
