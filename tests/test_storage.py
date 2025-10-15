@@ -694,3 +694,14 @@ def test_validation_functions_dict_not_failed_when_init(addictional_parameters):
     instance.field = 1
 
     assert instance.field == 1
+
+
+def test_validation_function_failed_when_default():
+    if sys.version_info < (3, 12):
+        with pytest.raises(RuntimeError):
+            class SomeClass(Storage):
+                field: int = Field(-15, validation=lambda value: value > 0)
+    else:
+        with pytest.raises(ValueError, match=match('The value "15" (int) of the "field" field does not match the validation.')):
+            class SomeClass(Storage):
+                field: int = Field(-15, validation=lambda value: value > 0)
