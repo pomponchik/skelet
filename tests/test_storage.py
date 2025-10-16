@@ -389,32 +389,46 @@ def test_simple_type_check_failed_when_set_bool_if_expected_int():
     assert instance.field is True
 
 
-def test_simple_type_check_failed_when_set():
+@pytest.mark.parametrize(
+    ['int_value', 'float_value', 'secret'],
+    [
+        ('***', '***', True),
+        ('15', '15.0', False),
+    ],
+)
+def test_simple_type_check_failed_when_set(int_value, float_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15)
+        field: int = Field(15, secret=secret)
 
     instance = SomeClass()
 
-    with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{int_value}" (str) of the "field" field does not match the type int.')):
         instance.field = '15'
 
-    with pytest.raises(TypeError, match=match('The value "15.0" (float) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{float_value}" (float) of the "field" field does not match the type int.')):
         instance.field = 15.0
 
     assert instance.field == 15
     assert type(instance.field) is int
 
 
-def test_simple_type_check_failed_when_set_with_doc():
+@pytest.mark.parametrize(
+    ['int_value', 'float_value', 'secret'],
+    [
+        ('***', '***', True),
+        ('15', '15.0', False),
+    ],
+)
+def test_simple_type_check_failed_when_set_with_doc(int_value, float_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, doc='some doc')
+        field: int = Field(15, doc='some doc', secret=secret)
 
     instance = SomeClass()
 
-    with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field (some doc) does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{int_value}" (str) of the "field" field (some doc) does not match the type int.')):
         instance.field = '15'
 
-    with pytest.raises(TypeError, match=match('The value "15.0" (float) of the "field" field (some doc) does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{float_value}" (float) of the "field" field (some doc) does not match the type int.')):
         instance.field = 15.0
 
     assert instance.field == 15
@@ -433,26 +447,40 @@ def test_simple_type_check_not_failed_when_set():
     assert type(instance.field) is int
 
 
-def test_type_check_when_define_default_failed():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('15', False),
+    ],
+)
+def test_type_check_when_define_default_failed(wrong_value, secret):
     if sys.version_info < (3, 12):
         with pytest.raises(RuntimeError):
             class SomeClass(Storage):
-                field: int = Field('15')
+                field: int = Field('15', secret=secret)
     else:
-        with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
-                field: int = Field('15')
+                field: int = Field('15', secret=secret)
 
 
-def test_type_check_when_define_default_failed_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('15', False),
+    ],
+)
+def test_type_check_when_define_default_failed_with_doc(wrong_value, secret):
     if sys.version_info < (3, 12):
         with pytest.raises(RuntimeError):
             class SomeClass(Storage):
-                field: int = Field('15', doc='some doc')
+                field: int = Field('15', doc='some doc', secret=secret)
     else:
-        with pytest.raises(TypeError, match=match('The value "15" (str) of the "field" field (some doc) does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field (some doc) does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
-                field: int = Field('15', doc='some doc')
+                field: int = Field('15', doc='some doc', secret=secret)
 
 
 def test_type_check_when_define_default_not_failed():
@@ -463,19 +491,33 @@ def test_type_check_when_define_default_not_failed():
     assert type(SomeClass().field) is int
 
 
-def test_type_check_when_redefine_defaults_initing_new_object_failed():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('kek', False),
+    ],
+)
+def test_type_check_when_redefine_defaults_initing_new_object_failed(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15)
+        field: int = Field(15, secret=secret)
 
-    with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field does not match the type int.')):
         SomeClass(field='kek')
 
 
-def test_type_check_when_redefine_defaults_initing_new_object_failed_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('kek', False),
+    ],
+)
+def test_type_check_when_redefine_defaults_initing_new_object_failed_with_doc(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, doc='some doc')
+        field: int = Field(15, doc='some doc', secret=secret)
 
-    with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type int.')):
+    with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field (some doc) does not match the type int.')):
         SomeClass(field='kek')
 
 
@@ -494,18 +536,25 @@ def test_type_check_when_redefine_defaults_initing_new_object_not_failed():
     assert type(instance.field) is int
 
 
-def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_failed():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('kek', False),
+    ],
+)
+def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_failed(wrong_value, secret):
     class SomeClass(Storage):
-        field: Optional[int] = Field(15)
+        field: Optional[int] = Field(15, secret=secret)
 
     if sys.version_info < (3, 10):
         with pytest.raises(AttributeError):
             SomeClass(field='kek')
     elif sys.version_info < (3, 14):
-        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type Optional.')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field does not match the type Optional.')):
             SomeClass(field='kek')
     else:
-        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type Union.')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field does not match the type Union.')):
             SomeClass(field='kek')
 
 
