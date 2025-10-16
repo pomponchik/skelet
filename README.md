@@ -4,7 +4,7 @@ Collect all the settings in one place
 
 One object with a configuration for your project.
 
-It's ready now::
+It's ready now:
 
 - [x] Default values specified in the class
 - [x] Values that are set during operation for class attributes

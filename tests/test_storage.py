@@ -760,3 +760,31 @@ def test_type_check_when_set_is_not_under_lock():
     assert instance.field == 5
 
     assert not instance.__locks__['field'].was_event_locked('kek')
+
+
+def test_type_check_when_set_is_before_validation():
+    flags = []
+    start_check = False
+
+    def validation(value):
+        nonlocal flags
+        if start_check:
+            print(value)
+            flags.append('validation')
+
+        return value > 0
+
+    class SomeClass(Storage):
+        field: int = Field(10, validation=validation)
+
+    instance = SomeClass()
+
+    SomeClass.field.check_type_hints = lambda x, y, z: flags.append('type_check')
+    start_check = True
+
+   # with pytest.raises(TypeError):
+   #     instance.field = 'kek'
+    instance.field = 'kek'
+
+    assert instance.field == 10
+    assert flags == ['type_check']
