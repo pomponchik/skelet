@@ -91,7 +91,7 @@ class Field(Generic[ValueType]):
             return
 
         if not check(type_hint, value):
-            raise TypeError(f'The value "{value}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint.__name__}.')
+            raise TypeError(f'The value "{self.get_value_representation(value)}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint.__name__}.')
 
     def get_field_name_representation(self) -> str:
         if self.doc is None:
@@ -106,7 +106,12 @@ class Field(Generic[ValueType]):
                         raise ValueError(message)
             else:
                 if not self.validation(value):
-                    raise ValueError(f'The value "{value}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
+                    raise ValueError(f'The value "{self.get_value_representation(value)}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
 
     def get_field_lock(self, instance: Storage) -> ContextLockProtocol:
         return instance.__locks__[cast(str, self.name)]
+
+    def get_value_representation(self, value: ValueType) -> str:
+        if self.secret:
+            return '***'
+        return f'{value}'

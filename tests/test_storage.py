@@ -533,18 +533,25 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
     assert instance.field == 1000
 
 
-def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_failed_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('kek', False),
+    ],
+)
+def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_failed_with_doc(wrong_value, secret):
     class SomeClass(Storage):
-        field: Optional[int] = Field(15, doc='some doc')
+        field: Optional[int] = Field(15, doc='some doc', secret=secret)
 
     if sys.version_info < (3, 10):
         with pytest.raises(AttributeError):
             SomeClass(field='kek')
     elif sys.version_info < (3, 14):
-        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type Optional.')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field (some doc) does not match the type Optional.')):
             SomeClass(field='kek')
     else:
-        with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field (some doc) does not match the type Union.')):
+        with pytest.raises(TypeError, match=match(f'The value "{wrong_value}" (str) of the "field" field (some doc) does not match the type Union.')):
             SomeClass(field='kek')
 
 
@@ -570,23 +577,37 @@ def test_try_to_use_underscored_name_for_field_with_doc():
                 _field: int = Field(15, doc='some doc')
 
 
-def test_validation_function_failed_when_set():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-1', False),
+    ],
+)
+def test_validation_function_failed_when_set(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, validation=lambda value: value > 0)
+        field: int = Field(15, validation=lambda value: value > 0, secret=secret)
 
     instance = SomeClass()
 
-    with pytest.raises(ValueError, match=match('The value "-1" (int) of the "field" field does not match the validation.')):
+    with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field does not match the validation.')):
         instance.field = -1
 
 
-def test_validation_function_failed_when_set_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-1', False),
+    ],
+)
+def test_validation_function_failed_when_set_with_doc(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, validation=lambda value: value > 0, doc='some doc')
+        field: int = Field(15, validation=lambda value: value > 0, doc='some doc', secret=secret)
 
     instance = SomeClass()
 
-    with pytest.raises(ValueError, match=match('The value "-1" (int) of the "field" field (some doc) does not match the validation.')):
+    with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field (some doc) does not match the validation.')):
         instance.field = -1
 
 
@@ -629,19 +650,33 @@ def test_validation_functions_dict_not_failed_when_set():
     assert instance.field == 1
 
 
-def test_validation_function_failed_when_init():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-1', False),
+    ],
+)
+def test_validation_function_failed_when_init(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, validation=lambda value: value > 0)
+        field: int = Field(15, validation=lambda value: value > 0, secret=secret)
 
-    with pytest.raises(ValueError, match=match('The value "-1" (int) of the "field" field does not match the validation.')):
+    with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field does not match the validation.')):
         SomeClass(field=-1)
 
 
-def test_validation_function_failed_when_init_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-1', False),
+    ],
+)
+def test_validation_function_failed_when_init_with_doc(wrong_value, secret):
     class SomeClass(Storage):
-        field: int = Field(15, validation=lambda value: value > 0, doc='some doc')
+        field: int = Field(15, validation=lambda value: value > 0, doc='some doc', secret=secret)
 
-    with pytest.raises(ValueError, match=match('The value "-1" (int) of the "field" field (some doc) does not match the validation.')):
+    with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field (some doc) does not match the validation.')):
         SomeClass(field=-1)
 
 
@@ -696,26 +731,40 @@ def test_validation_functions_dict_not_failed_when_init(addictional_parameters):
     assert instance.field == 1
 
 
-def test_validation_function_failed_when_default():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-15', False),
+    ],
+)
+def test_validation_function_failed_when_default(wrong_value, secret):
     if sys.version_info < (3, 12):
         with pytest.raises(RuntimeError):
             class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0)
+                field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
     else:
-        with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+        with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0)
+                field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
 
 
-def test_validation_function_failed_when_default_with_doc():
+@pytest.mark.parametrize(
+    ['wrong_value', 'secret'],
+    [
+        ('***', True),
+        ('-15', False),
+    ],
+)
+def test_validation_function_failed_when_default_with_doc(wrong_value, secret):
     if sys.version_info < (3, 12):
         with pytest.raises(RuntimeError):
             class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
+                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc', secret=secret)
     else:
-        with pytest.raises(ValueError, match=match('The value "-15" (int) of the "field" field (some doc) does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+        with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field (some doc) does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc')
+                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc', secret=secret)
 
 
 @pytest.mark.parametrize(
