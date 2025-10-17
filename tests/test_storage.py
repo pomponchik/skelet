@@ -968,3 +968,72 @@ def test_action_doesnt_work_when_new_value_is_same():
 
     assert not flags
     assert instance.field == 10
+
+
+@pytest.mark.parametrize(
+    ['addictional_arguments'],
+    [
+        ({},),
+        ({'read_lock': True},),
+    ],
+)
+def test_read_lock_on(addictional_arguments):
+    class SomeClass(Storage):
+        field: int = Field(10, secret=True, **addictional_arguments)
+
+    instance = SomeClass()
+
+    lock = LockTraceWrapper(instance.__locks__['field'])
+    instance.__locks__['field'] = lock
+    field = SomeClass.field
+    field.lock = LockTraceWrapper(field.lock)
+
+    class PseudoDict:
+        def get(self, key, default):
+            lock.notify('get')
+            field.lock.notify('get')
+            return 10
+
+    instance.__fields__ = PseudoDict()
+
+    assert not lock.trace
+    assert not field.lock.trace
+
+    assert instance.field == 10
+
+    assert lock.trace
+    assert field.lock.trace
+
+    assert lock.was_event_locked('get')
+    assert not field.lock.was_event_locked('get')
+
+
+def test_read_lock_off():
+    class SomeClass(Storage):
+        field: int = Field(10, secret=True, read_lock=False)
+
+    instance = SomeClass()
+
+    lock = LockTraceWrapper(instance.__locks__['field'])
+    instance.__locks__['field'] = lock
+    field = SomeClass.field
+    field.lock = LockTraceWrapper(field.lock)
+
+    class PseudoDict:
+        def get(self, key, default):
+            lock.notify('get')
+            field.lock.notify('get')
+            return 10
+
+    instance.__fields__ = PseudoDict()
+
+    assert not lock.trace
+    assert not field.lock.trace
+
+    assert instance.field == 10
+
+    assert lock.trace
+    assert field.lock.trace
+
+    assert not lock.was_event_locked('get')
+    assert not field.lock.was_event_locked('get')
