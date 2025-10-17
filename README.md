@@ -16,11 +16,11 @@ It's ready now:
 - [x] The ability to validate any fields
 - [x] A separate mutex for each field
 - [x] Secret fields
+- [x] The ability to set a callback to change any of the field
+- [x] The ability to turn-off thread safety for reads of certain field
 
 To do:
 
-- [ ] The ability to set a callback to change any of the field
-- [ ] The ability to turn-off thread safety for reads
 - [ ] Checking fields for conflicts
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] The specified sections in the `pyproject.toml` file
