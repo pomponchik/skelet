@@ -354,14 +354,22 @@ def test_that_set_is_thread_safe_and_use_per_field_locks():
     storage.__locks__['field'] = LockTraceWrapper(storage.__locks__['field'])
     class PseudoDict:
         def __setitem__(self, key, default):
+            storage.__locks__['field'].notify('set')
+            field.lock.notify('set')
+
+        def get(self, key, default):
             storage.__locks__['field'].notify('get')
             field.lock.notify('get')
+            return 42
+
     storage.__fields__ = PseudoDict()
 
     storage.field = 44
 
+    assert storage.__locks__['field'].was_event_locked('set')
     assert storage.__locks__['field'].was_event_locked('get')
 
+    assert not field.lock.was_event_locked('set') and field.lock.trace
     assert not field.lock.was_event_locked('get') and field.lock.trace
 
 

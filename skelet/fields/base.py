@@ -10,18 +10,24 @@ from skelet.storage import Storage
 ValueType = TypeVar('ValueType')
 
 class Field(Generic[ValueType]):
-    def __init__(self, default: ValueType, read_only: bool = False, doc: Optional[str] = None, validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None, validate_default: bool = True, secret: bool = False) -> None:
+    def __init__(self, default: ValueType, read_only: bool = False, doc: Optional[str] = None, validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None, validate_default: bool = True, secret: bool = False, change_action: Optional[Callable[[ValueType, ValueType, Storage], Any]] = None, read_lock: bool = True) -> None:
         self.default = default
         self.read_only = read_only
         self.doc = doc
         self.validation = validation
         self.validate_default = validate_default
         self.secret = secret
+        self.change_action = change_action
 
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None
 
         self.lock: ContextLockProtocol = Lock()
+
+        if read_lock:
+            self.real_get = self.locked_get
+        else:
+            self.real_get = self.unlocked_get
 
     def __set_name__(self, owner: Type[Storage], name: str) -> None:
         if name.startswith('_'):
@@ -45,8 +51,17 @@ class Field(Generic[ValueType]):
         if instance is None:
             return self
 
+        return self.real_get(instance, instance_class)
+
+    def real_get(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
+        raise NotImplementedError('If you see this error, it means something is broken.')
+
+    def locked_get(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
         with self.get_field_lock(instance):
-            return instance.__fields__.get(cast(str, self.name), self.default)
+            return self.unlocked_get(instance, instance_class)
+
+    def unlocked_get(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
+        return instance.__fields__.get(cast(str, self.name), self.default)
 
     def __set__(self, instance: Storage, value: ValueType) -> None:
         if self.read_only:
@@ -56,7 +71,10 @@ class Field(Generic[ValueType]):
         self.check_value(value)
 
         with self.get_field_lock(instance):
+            old_value = self.unlocked_get(instance, type(instance))
             instance.__fields__[cast(str, self.name)] = value
+            if self.change_action is not None and value != old_value:
+                self.change_action(old_value, value, instance)
 
     def __delete__(self, instance: Any) -> None:
         raise AttributeError(f"You can't delete the {self.get_field_name_representation()} value.")
