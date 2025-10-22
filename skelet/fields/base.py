@@ -1,4 +1,4 @@
-from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, Dict, get_type_hints, cast
+from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, List, Dict, get_type_hints, cast
 from threading import Lock
 
 from locklib import ContextLockProtocol
@@ -10,7 +10,19 @@ from skelet.storage import Storage
 ValueType = TypeVar('ValueType')
 
 class Field(Generic[ValueType]):
-    def __init__(self, default: ValueType, read_only: bool = False, doc: Optional[str] = None, validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None, validate_default: bool = True, secret: bool = False, change_action: Optional[Callable[[ValueType, ValueType, Storage], Any]] = None, read_lock: bool = True) -> None:
+    def __init__(
+        self,
+        default: ValueType,
+        read_only: bool = False,
+        doc: Optional[str] = None,
+        validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None,
+        validate_default: bool = True,
+        secret: bool = False,
+        change_action: Optional[Callable[[ValueType, ValueType, Storage], Any]] = None,
+        read_lock: bool = True,
+        conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
+        reverse_conflicts: bool = True,
+    ) -> None:
         self.default = default
         self.read_only = read_only
         self.doc = doc
@@ -18,6 +30,8 @@ class Field(Generic[ValueType]):
         self.validate_default = validate_default
         self.secret = secret
         self.change_action = change_action
+        self.conflicts = conflicts
+        self.reverse_conflicts_on = reverse_conflicts
 
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None
@@ -72,6 +86,21 @@ class Field(Generic[ValueType]):
 
         with self.get_field_lock(instance):
             old_value = self.unlocked_get(instance, type(instance))
+            if self.conflicts is not None:
+                for other_field_name, checker in self.conflicts.items():
+                    other_field = getattr(type(instance), other_field_name)
+                    other_field_value = other_field.unlocked_get(instance, type(instance))
+                    if checker(old_value, value, other_field_value, other_field_value):
+                        raise ValueError(f'The new {self.get_value_representation(value)} ({type(value).__name__}) value of the {self.get_field_name_representation()} conflicts with the {other_field.get_value_representation(other_field_value)} ({type(other_field_value).__name__}) value of the {other_field.get_field_name_representation()}.')
+
+            if self.name in instance.__reverse_conflicts__:
+                for other_field_name in instance.__reverse_conflicts__[self.name]:
+                    other_field = getattr(type(instance), other_field_name)
+                    other_field_value = other_field.unlocked_get(instance, type(instance))
+                    other_field_checker = other_field.conflicts[self.name]
+                    if other_field_checker(other_field_value, other_field_value, old_value, value):
+                        raise ValueError(f'The new {self.get_value_representation(value)} ({type(value).__name__}) value of the {self.get_field_name_representation()} conflicts with the {other_field.get_value_representation(other_field_value)} ({type(other_field_value).__name__}) value of the {other_field.get_field_name_representation()}.')
+
             instance.__fields__[cast(str, self.name)] = value
             if self.change_action is not None and value != old_value:
                 self.change_action(old_value, value, instance)
@@ -109,7 +138,7 @@ class Field(Generic[ValueType]):
             return
 
         if not check(type_hint, value):
-            raise TypeError(f'The value "{self.get_value_representation(value)}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint.__name__}.')
+            raise TypeError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint.__name__}.')
 
     def get_field_name_representation(self) -> str:
         if self.doc is None:
@@ -124,7 +153,7 @@ class Field(Generic[ValueType]):
                         raise ValueError(message)
             else:
                 if not self.validation(value):
-                    raise ValueError(f'The value "{self.get_value_representation(value)}" ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
+                    raise ValueError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
 
     def get_field_lock(self, instance: Storage) -> ContextLockProtocol:
         return instance.__locks__[cast(str, self.name)]
@@ -132,4 +161,4 @@ class Field(Generic[ValueType]):
     def get_value_representation(self, value: ValueType) -> str:
         if self.secret:
             return '***'
-        return f'{value}'
+        return f'"{value}"'
