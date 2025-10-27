@@ -1585,3 +1585,42 @@ def test_conflicting_fields_in_defaults_when_reverse_check_off(addictional_argum
 
     assert instance.field == 10
     assert instance.other_field == 5
+
+
+def test_variables_order_when_conflicts_checking():
+    breadcrumbs = []
+
+    def check_conflicts(old, new, other_old, other_new):
+        breadcrumbs.append((old, new, other_old, other_new))
+        return old > other_new
+
+    class SomeClass(Storage):
+        field: int = Field(5, conflicts={'other_field': check_conflicts})
+        other_field: int = Field(10)
+
+    assert len(breadcrumbs) == 1
+    assert breadcrumbs[0] == (5, 5, 10, 10)
+
+    instance = SomeClass()
+
+    assert len(breadcrumbs) == 1
+
+    instance.field = 5
+
+    assert len(breadcrumbs) == 2
+    assert breadcrumbs[1] == (5, 5, 10, 10)
+
+    instance.field = 6
+
+    assert len(breadcrumbs) == 3
+    assert breadcrumbs[2] == (5, 6, 10, 10)
+
+    instance.other_field = 11
+
+    assert len(breadcrumbs) == 4
+    assert breadcrumbs[3] == (6, 6, 10, 11)
+
+    instance.other_field = 11
+
+    assert len(breadcrumbs) == 5
+    assert breadcrumbs[4] == (6, 6, 11, 11)
