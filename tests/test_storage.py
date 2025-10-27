@@ -792,7 +792,7 @@ def test_validation_functions_dict_not_failed_when_init(addictional_parameters):
     ['wrong_value', 'secret'],
     [
         ('***', True),
-        ('-15', False),
+        ('"-15"', False),
     ],
 )
 def test_validation_function_failed_when_default(wrong_value, secret):
@@ -801,7 +801,7 @@ def test_validation_function_failed_when_default(wrong_value, secret):
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
     else:
-        with pytest.raises(ValueError, match=match(f'The value "{wrong_value}" (int) of the "field" field does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
+        with pytest.raises(ValueError, match=match(f'The value {wrong_value} (int) of the "field" field does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
             class SomeClass(Storage):
                 field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
 
