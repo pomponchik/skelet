@@ -4,7 +4,7 @@ from functools import cached_property
 
 try:
     from tomllib import load
-except ImportError:
+except ImportError:  # pragma: no cover
     from tomli import load
 
 from skelet.sources.abstract import AbstractSource
