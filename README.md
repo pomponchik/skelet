@@ -24,6 +24,8 @@ It's ready now:
 
 To do:
 
+- [ ] Special classes for checking through types for belonging to sets of positive or natural numbers
+- [ ] Default factories.
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] The ability to share a single mutex into several fields
 - [ ] Converting types from one to another
@@ -33,7 +35,6 @@ To do:
 - [ ] Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
 - [ ] 'yaml' format support
 - [ ] 'json' format support
-- [ ] Special classes for checking through types for belonging to sets of positive or natural numbers
 
 
 Links to add here:
