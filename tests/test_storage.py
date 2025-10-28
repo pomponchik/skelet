@@ -1752,3 +1752,28 @@ def test_load_from_toml(config_path):
 
     assert instance.field == 7
     assert instance.other_field == 14
+
+
+def test_source_checking_is_under_field_lock():
+    locks: List[LockTraceWrapper] = []
+
+    class PseudoDict:
+        def __getitem__(self, key: str) -> Any:
+            for lock in locks:
+                lock.notify('get')
+            return 1
+
+    class SomeClass(Storage, sources=[PseudoDict()]):
+        field: int = Field(10)
+        other_field: int = Field(20)
+
+    instance = SomeClass()
+
+    lock = LockTraceWrapper(instance.__locks__['field'])
+    locks.append(lock)
+    instance.__locks__['field'] = lock
+
+    assert instance.field == 1
+
+    assert lock.trace
+    assert lock.was_event_locked('get')
