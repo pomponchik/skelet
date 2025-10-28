@@ -32,20 +32,24 @@ class TOMLSource(AbstractSource):
     def data(self):
         try:
             with open(self.path, 'rb') as file:
-                return load(file)
+                table = load(file)
+
+            for subtable_name in self.table:
+                table = table[subtable_name]
+
+            return table
+
         except FileNotFoundError as e:
             if self.allow_non_existent_files:
                 return {}
             else:
                 raise e
 
+        except KeyError:
+            return {}
+
     def __getitem__(self, key: str) -> Any:
-        data = self.data
-
-        for subtable in self.table:
-            data = data[subtable]
-
-        return data[key]
+        return self.data[key]
 
     @classmethod
     def for_library(cls, library_name: str) -> List['TOMLSource']:
