@@ -967,7 +967,6 @@ def test_action_doesnt_work_when_new_value_is_same():
 @pytest.mark.parametrize(
     ['addictional_arguments'],
     [
-        ({},),
         ({'read_lock': True},),
     ],
 )
@@ -1748,7 +1747,7 @@ def test_load_from_toml(config_path):
     assert instance.other_field == 14
 
 
-def test_source_checking_is_under_field_lock():
+def test_source_checking_is_under_field_lock_when_its_on():
     locks: List[LockTraceWrapper] = []
 
     class PseudoDict:
@@ -1758,7 +1757,7 @@ def test_source_checking_is_under_field_lock():
             return 1
 
     class SomeClass(Storage, sources=[PseudoDict()]):
-        field: int = Field(10)
+        field: int = Field(10, read_lock=True)
         other_field: int = Field(20)
 
     instance = SomeClass()

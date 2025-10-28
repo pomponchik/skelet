@@ -22,7 +22,7 @@ class Field(Generic[ValueType]):
         validate_default: bool = True,
         secret: bool = False,
         change_action: Optional[Callable[[ValueType, ValueType, Storage], Any]] = None,
-        read_lock: bool = True,
+        read_lock: bool = False,
         conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
         reverse_conflicts: bool = True,
     ) -> None:
