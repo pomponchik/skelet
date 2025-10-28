@@ -1,9 +1,12 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Optional, Any
 from threading import Lock
 from collections import defaultdict
 
 from printo import descript_data_object
 from locklib import ContextLockProtocol
+
+from skelet.sources.collection import SourcesCollection
+from skelet.sources.abstract import AbstractSource
 
 
 class Storage:
@@ -11,6 +14,7 @@ class Storage:
     __locks__: Dict[str, ContextLockProtocol]
     __field_names__: List[str] = []  # pragma: no cover
     __reverse_conflicts__: Dict[str, List[str]]
+    __sources__: SourcesCollection
 
     def __init__(self, **kwargs: Any) -> None:
         self.__fields__: Dict[str, Any] = {}
@@ -29,8 +33,10 @@ class Storage:
                 for another_field_name in field.conflicts:
                     self.__locks__[another_field_name] = lock
 
-    def __init_subclass__(cls, reverse_conflicts: bool = True, **kwargs: Any):
+    def __init_subclass__(cls, reverse_conflicts: bool = True, sources: Optional[List[AbstractSource]] = None, **kwargs: Any):
             super().__init_subclass__(**kwargs)
+
+            cls.__sources__ = SourcesCollection(sources) if sources is not None else SourcesCollection([])
 
             deduplicated_field_names = set(cls.__field_names__)
 

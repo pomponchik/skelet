@@ -5,7 +5,7 @@ import pytest
 from full_match import match
 from locklib import LockTraceWrapper
 
-from skelet import Storage, Field
+from skelet import Storage, Field, TOMLSource
 
 
 def test_try_to_get_descriptor_object_from_class_inherited_from_storage():
@@ -1679,3 +1679,76 @@ def test_reverse_fields_container_in_case_of_inheritance_with_same_field():
 
     assert SomeClass.__field_names__ == ['field', 'other_field']
     assert SomeOtherClass.__field_names__ == ['field', 'other_field']
+
+
+@pytest.mark.parametrize(
+    ['sources'],
+    [
+        ([],),
+        ([{}],),
+    ],
+)
+def test_empty_set_of_sources(sources):
+    class SomeClass(Storage, sources=sources):
+        field: int = Field(5)
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    assert instance.field == 5
+    assert instance.other_field == 10
+
+
+def test_reset_value_using_source():
+    class SomeClass(Storage, sources=[{'field': 15}]):
+        field: int = Field(5)
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    assert instance.field == 15
+    assert instance.other_field == 10
+
+    instance.field = 7
+
+    assert instance.field == 7
+
+
+def test_order_of_sources():
+    class SomeClass(Storage, sources=[{'field': 15}, {'field': 23}]):
+        field: int = Field(5)
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    assert instance.field == 15
+    assert instance.other_field == 10
+
+    instance.field = 7
+
+    assert instance.field == 7
+
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'field': 1,
+            'other_field': 14,
+        },),
+    ],
+)
+def test_load_from_toml(config_path):
+    class SomeClass(Storage, sources=[TOMLSource(config_path)]):
+        field: int = Field(5)
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    assert instance.field == 1
+    assert instance.other_field == 14
+
+    instance.field = 7
+
+    assert instance.field == 7
+    assert instance.other_field == 14

@@ -75,7 +75,7 @@ class Field(Generic[ValueType]):
             return self.unlocked_get(instance, instance_class)
 
     def unlocked_get(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
-        return instance.__fields__.get(cast(str, self.name), self.default)
+        return instance.__fields__.get(cast(str, self.name), instance.__sources__.get(cast(str, self.name), self.default))
 
     def __set__(self, instance: Storage, value: ValueType) -> None:
         if self.read_only:
