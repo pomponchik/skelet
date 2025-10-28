@@ -11,6 +11,7 @@ def temporary_dir_path():
     with TemporaryDirectory() as path:
         yield path
 
+
 @pytest.fixture(params=[str, Path])
 def config_path(request, data, temporary_dir_path):
     serialized_data = dumps(data)
