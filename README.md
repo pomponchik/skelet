@@ -24,10 +24,10 @@ It's ready now:
 - [x] Special classes for checking through types for belonging to sets of positive or natural numbers
 - [x] Default factories
 - [x] Converting values from one to another
+- [x] The ability to share a single mutex into several fields
 
 To do:
 
-- [ ] The ability to share a single mutex into several fields
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] Subtraction of environment variables
 - [ ] Class inheritance support
