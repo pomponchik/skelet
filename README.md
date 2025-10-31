@@ -22,10 +22,10 @@ It's ready now:
 - [x] The specified sections in the `pyproject.toml` file
 - [x] One or more separate `toml` files
 - [x] Special classes for checking through types for belonging to sets of positive or natural numbers
+- [x] Default factories.
 
 To do:
 
-- [ ] Default factories.
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] The ability to share a single mutex into several fields
 - [ ] Converting types from one to another
