@@ -2,6 +2,7 @@ from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, Dict,
 from threading import Lock
 from dataclasses import MISSING, _MISSING_TYPE
 from collections.abc import Sequence
+from sys import version_info
 
 from locklib import ContextLockProtocol
 from simtypes import check
@@ -10,6 +11,11 @@ from skelet.storage import Storage
 
 
 ValueType = TypeVar('ValueType')
+
+if version_info < (3, 9):
+    SequenceWithStrings = Sequence
+else:
+    SequenceWithStrings = Sequence[str]
 
 class Field(Generic[ValueType]):
     def __init__(
@@ -27,7 +33,7 @@ class Field(Generic[ValueType]):
         conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
         reverse_conflicts: bool = True,
         conversion: Optional[Callable[[ValueType], ValueType]] = None,
-        share_mutex_with: Optional[Sequence[str]] = None,
+        share_mutex_with: Optional[SequenceWithStrings] = None,
     ) -> None:
         if default is MISSING and default_factory is None:
             raise ValueError('The default value or default value factory must be specified for the field.')
