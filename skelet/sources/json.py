@@ -23,9 +23,6 @@ class JSONSource(AbstractSource):
             else:
                 raise e
 
-        except KeyError:
-            return {}
-
     def __getitem__(self, key: str) -> Any:
         return self.data[key]
 
