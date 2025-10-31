@@ -66,13 +66,14 @@ class Field(Generic[ValueType]):
 
         with self.lock:
             self.name = name
-            self.base_class = owner
 
             if self.base_class is not None:
                 self.raise_exception_in_storage(TypeError(f'{self.get_field_name_representation()} cannot be used in {owner.__name__} because it is already used in {self.base_class.__name__}.'), raising_on=False)
 
             if not issubclass(owner, Storage):
                 self.raise_exception_in_storage(TypeError(f'{self.get_field_name_representation()} can only be used in Storage subclasses.'), raising_on=True)
+
+            self.base_class = owner
 
             if self._default_before_conversion is not MISSING:
                 self.check_type_hints(owner, name, self._default_before_conversion)
