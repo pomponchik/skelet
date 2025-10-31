@@ -17,8 +17,8 @@ from skelet import TOMLSource
         },),
     ],
 )
-def test_read_simple_values_from_top_level_table(config_path):
-    source = TOMLSource(config_path)
+def test_read_simple_values_from_top_level_table(toml_config_path):
+    source = TOMLSource(toml_config_path)
 
     assert source['int_top_value'] == 1
     assert source['str_top_value'] == 'lol'
@@ -34,8 +34,8 @@ def test_read_simple_values_from_top_level_table(config_path):
         ({},),
     ],
 )
-def test_read_empty_value_from_top_level_table(config_path):
-    source = TOMLSource(config_path)
+def test_read_empty_value_from_top_level_table(toml_config_path):
+    source = TOMLSource(toml_config_path)
 
     with pytest.raises(KeyError):
         source['some_top_value']
@@ -60,8 +60,8 @@ def test_read_empty_value_from_top_level_table(config_path):
         ('kek',),
     ],
 )
-def test_read_empty_value_from_nested_level_table(config_path, table_name):
-    source = TOMLSource(config_path, table=table_name)
+def test_read_empty_value_from_nested_level_table(toml_config_path, table_name):
+    source = TOMLSource(toml_config_path, table=table_name)
 
     with pytest.raises(KeyError):
         source['non_existent_value']
@@ -84,13 +84,13 @@ def test_read_empty_value_from_nested_level_table(config_path, table_name):
         },),
     ],
 )
-def test_read_simple_values_from_users_table_written_as_string(config_path):
-    source = TOMLSource(config_path, table='table')
+def test_read_simple_values_from_users_table_written_as_string(toml_config_path):
+    source = TOMLSource(toml_config_path, table='table')
 
     assert source['int_value'] == 3
     assert source['str_value'] == 'kek'
 
-    source = TOMLSource(config_path, table='table.another_table')
+    source = TOMLSource(toml_config_path, table='table.another_table')
 
     assert source['int_value'] == 15
     assert source['str_value'] == 'cheburek'
@@ -117,28 +117,28 @@ def test_read_simple_values_from_users_table_written_as_string(config_path):
         },),
     ],
 )
-def test_read_simple_values_from_users_table_written_as_list(config_path):
-    source = TOMLSource(config_path, table=['table'])
+def test_read_simple_values_from_users_table_written_as_list(toml_config_path):
+    source = TOMLSource(toml_config_path, table=['table'])
 
     assert source['int_value'] == 3
     assert source['str_value'] == 'kek'
 
-    source = TOMLSource(config_path, table=['table', 'another_table'])
+    source = TOMLSource(toml_config_path, table=['table', 'another_table'])
 
     assert source['int_value'] == 15
     assert source['str_value'] == 'cheburek'
 
-    source = TOMLSource(config_path, table=['table.another_table'])
+    source = TOMLSource(toml_config_path, table=['table.another_table'])
 
     assert source['int_value'] == 15
     assert source['str_value'] == 'cheburek'
 
-    source = TOMLSource(config_path, table=['table', 'another_table.third_table'])
+    source = TOMLSource(toml_config_path, table=['table', 'another_table.third_table'])
 
     assert source['int_value'] == 25
     assert source['str_value'] == 'super_cheburek'
 
-    source = TOMLSource(config_path, table=['table.another_table', 'third_table'])
+    source = TOMLSource(toml_config_path, table=['table.another_table', 'third_table'])
 
     assert source['int_value'] == 25
     assert source['str_value'] == 'super_cheburek'
@@ -161,9 +161,9 @@ def test_read_simple_values_from_users_table_written_as_list(config_path):
         (['lol.:kek'],),
     ],
 )
-def test_non_python_identifier_as_string(config_path, wrong_table):
+def test_non_python_identifier_as_string(toml_config_path, wrong_table):
     with pytest.raises(ValueError, match=match('You can only use a subset of all valid TOML format identifiers that can be used as a Python identifier. You used ":kek".')):
-        TOMLSource(config_path, table=wrong_table)
+        TOMLSource(toml_config_path, table=wrong_table)
 
 
 @pytest.mark.parametrize(
