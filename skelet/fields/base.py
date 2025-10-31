@@ -15,8 +15,9 @@ class Field(Generic[ValueType]):
         self,
         default: Union[ValueType, _MISSING_TYPE] = MISSING,
         /,
-        read_only: bool = False,
+        default_factory: Optional[Callable[[], ValueType]] = None,
         doc: Optional[str] = None,
+        read_only: bool = False,
         validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None,
         validate_default: bool = True,
         secret: bool = False,
@@ -24,14 +25,19 @@ class Field(Generic[ValueType]):
         read_lock: bool = False,
         conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
         reverse_conflicts: bool = True,
-        default_factory: Optional[Callable[[], ValueType]] = None,
+        conversion: Optional[Callable[[ValueType], ValueType]] = None,
     ) -> None:
         if default is MISSING and default_factory is None:
             raise ValueError('The default value or default value factory must be specified for the field.')
         elif default_factory is not None and default is not MISSING:
             raise ValueError('You can define a default value or a factory for default values, but not all at the same time.')
 
-        self._default = default
+        if conversion is not None and default is not MISSING:
+            self._default_before_conversion = default
+            self._default = conversion(default)
+        else:
+            self._default_before_conversion = MISSING
+            self._default = default
         self._default_factory = default_factory
         self.read_only = read_only
         self.doc = doc
@@ -41,9 +47,11 @@ class Field(Generic[ValueType]):
         self.change_action = change_action
         self.conflicts = conflicts
         self.reverse_conflicts_on = reverse_conflicts
+        self.conversion = conversion
 
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None
+        self.exception: Optional[BaseException] = None
 
         self.lock: ContextLockProtocol = Lock()
 
@@ -54,16 +62,19 @@ class Field(Generic[ValueType]):
 
     def __set_name__(self, owner: Type[Storage], name: str) -> None:
         if name.startswith('_'):
-            raise ValueError(f'Field name "{name}" cannot start with an underscore.')
+            self.raise_exception_in_storage(ValueError(f'Field name "{name}" cannot start with an underscore.'))
 
         with self.lock:
             if self.base_class is not None:
-                raise TypeError(f'{self.get_field_name_representation()} cannot be used in {owner.__name__} because it is already used in {self.base_class.__name__}.')
+                self.raise_exception_in_storage(TypeError(f'{self.get_field_name_representation()} cannot be used in {owner.__name__} because it is already used in {self.base_class.__name__}.'))
             if not issubclass(owner, Storage):
-                raise TypeError(f'{self.get_field_name_representation()} can only be used in Storage subclasses.')
+                self.raise_exception_in_storage(TypeError(f'{self.get_field_name_representation()} can only be used in Storage subclasses.'))
 
             self.name = name
             self.base_class = owner
+
+            if self._default_before_conversion is not MISSING:
+                self.check_type_hints(owner, name, self._default_before_conversion)
 
             self.set_field_names(owner, name)
             if self._default is not MISSING:
@@ -91,8 +102,13 @@ class Field(Generic[ValueType]):
         if self.read_only:
             raise AttributeError(f'{self.get_field_name_representation()} is read-only.')
 
-        self.check_type_hints(cast(Type[Storage], self.base_class), cast(str, self.name), value)
-        self.check_value(value)
+        self.check_type_hints(cast(Type[Storage], self.base_class), cast(str, self.name), value, raise_all=True)
+
+        if self.conversion is not None:
+            value = self.conversion(value)
+            self.check_type_hints(cast(Type[Storage], self.base_class), cast(str, self.name), value, raise_all=True)
+
+        self.check_value(value, raise_all=True)
 
         with self.get_field_lock(instance):
             old_value = self.unlocked_get(instance, type(instance))
@@ -138,7 +154,7 @@ class Field(Generic[ValueType]):
         if name not in known_names:  # pragma: no branch
             owner.__field_names__.append(name)
 
-    def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType, strict: bool = False) -> None:
+    def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType, strict: bool = False, raise_all: bool = False) -> None:
         type_hint = get_type_hints(owner).get(name, MISSING)
 
         if type_hint is MISSING:
@@ -146,22 +162,22 @@ class Field(Generic[ValueType]):
 
         if not check(value, type_hint, strict=strict):
             type_hint_name = type_hint.__name__ if get_origin(type_hint) is None else get_origin(type_hint).__name__  # type: ignore[union-attr]
-            raise TypeError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint_name}.')
+            self.raise_exception_in_storage(TypeError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the type {type_hint_name}.'), raise_all)
 
     def get_field_name_representation(self) -> str:
         if self.doc is None:
             return f'"{self.name}" field'
         return f'"{self.name}" field ({self.doc})'
 
-    def check_value(self, value: ValueType) -> None:
+    def check_value(self, value: ValueType, raise_all: bool = False) -> None:
         if self.validation is not None:
             if isinstance(self.validation, dict):
                 for message, validator in self.validation.items():
                     if not validator(value):
-                        raise ValueError(message)
+                        self.raise_exception_in_storage(ValueError(message), raise_all)
             else:
                 if not self.validation(value):
-                    raise ValueError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.')
+                    self.raise_exception_in_storage(ValueError(f'The value {self.get_value_representation(value)} ({type(value).__name__}) of the {self.get_field_name_representation()} does not match the validation.'), raise_all)
 
     def get_field_lock(self, instance: Storage) -> ContextLockProtocol:
         return instance.__locks__[cast(str, self.name)]
@@ -170,3 +186,9 @@ class Field(Generic[ValueType]):
         if self.secret:
             return '***'
         return f'"{value}"'
+
+    def raise_exception_in_storage(self, exception: BaseException, raising_on: bool) -> None:
+        if raising_on:
+            raise exception
+        if self.exception is None:
+            self.exception = exception

@@ -31,19 +31,27 @@ class Storage:
         for field_name in self.__field_names__:
             content = self.__sources__.get(field_name, MISSING)
             field = getattr(type(self), field_name)
+            it_is_not_default = True
             if content is not MISSING:
-                field.check_type_hints(type(self), field_name, content, strict=True)
-                field.check_value(content)
-                self.__values__[field_name] = content
+                field.check_type_hints(type(self), field_name, content, strict=True, raise_all=True)
+                field.check_value(content, raise_all=True)
             else:
                 if field._default_factory is not None:
                     content = field._default_factory()
-                    field.check_type_hints(type(self), field_name, content, strict=True)
+                    field.check_type_hints(type(self), field_name, content, strict=True, raise_all=True)
                     if field.validate_default:
-                        field.check_value(content)
-                    self.__values__[field_name] = content
+                        field.check_value(content, raise_all=True)
                 else:
-                    self.__values__[field_name] = field._default
+                    it_is_not_default = False
+                    content = field._default
+
+            if field.conversion is not None and it_is_not_default:
+                content = field.conversion(content)
+                field.check_type_hints(type(self), field_name, content, strict=True, raise_all=True)
+                if field.validate_default:
+                    field.check_value(content, raise_all=True)
+
+            self.__values__[field_name] = content
 
         for field_name in self.__field_names__:
             field = getattr(type(self), field_name)
@@ -72,6 +80,11 @@ class Storage:
 
     def __init_subclass__(cls, reverse_conflicts: bool = True, sources: Optional[List[AbstractSource]] = None, **kwargs: Any):
             super().__init_subclass__(**kwargs)
+
+            for field_name in cls.__field_names__:
+                field = getattr(cls, field_name)
+                if field.exception is not None:
+                    raise field.exception
 
             cls.__sources__ = SourcesCollection(sources) if sources is not None else SourcesCollection([])
 

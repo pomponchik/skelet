@@ -1,5 +1,5 @@
 import sys
-from typing import List, Any, Optional
+from typing import List, Any, Union, Optional
 
 import pytest
 from full_match import match
@@ -463,14 +463,9 @@ def test_simple_type_check_not_failed_when_set():
     ],
 )
 def test_type_check_when_define_default_failed(wrong_value, secret):
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                field: int = Field('15', secret=secret)
-    else:
-        with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                field: int = Field('15', secret=secret)
+    with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field does not match the type int.')):
+        class SomeClass(Storage):
+            field: int = Field('15', secret=secret)
 
 
 @pytest.mark.parametrize(
@@ -481,14 +476,9 @@ def test_type_check_when_define_default_failed(wrong_value, secret):
     ],
 )
 def test_type_check_when_define_default_failed_with_doc(wrong_value, secret):
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                field: int = Field('15', doc='some doc', secret=secret)
-    else:
-        with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field (some doc) does not match the type int.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                field: int = Field('15', doc='some doc', secret=secret)
+    with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field (some doc) does not match the type int.')):
+        class SomeClass(Storage):
+            field: int = Field('15', doc='some doc', secret=secret)
 
 
 def test_type_check_when_define_default_not_failed():
@@ -790,14 +780,9 @@ def test_validation_functions_dict_not_failed_when_init(addictional_parameters):
     ],
 )
 def test_validation_function_failed_when_default(wrong_value, secret):
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
-    else:
-        with pytest.raises(ValueError, match=match(f'The value {wrong_value} (int) of the "field" field does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
+    with pytest.raises(ValueError, match=match(f'The value {wrong_value} (int) of the "field" field does not match the validation.')):
+        class SomeClass(Storage):
+            field: int = Field(-15, validation=lambda value: value > 0, secret=secret)
 
 
 @pytest.mark.parametrize(
@@ -808,14 +793,9 @@ def test_validation_function_failed_when_default(wrong_value, secret):
     ],
 )
 def test_validation_function_failed_when_default_with_doc(wrong_value, secret):
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc', secret=secret)
-    else:
-        with pytest.raises(ValueError, match=match(f'The value {wrong_value} (int) of the "field" field (some doc) does not match the validation.\nError calling __set_name__ on \'Field\' instance \'field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                field: int = Field(-15, validation=lambda value: value > 0, doc='some doc', secret=secret)
+    with pytest.raises(ValueError, match=match(f'The value {wrong_value} (int) of the "field" field (some doc) does not match the validation.')):
+        class SomeClass(Storage):
+            field: int = Field(-15, validation=lambda value: value > 0, doc='some doc', secret=secret)
 
 
 @pytest.mark.parametrize(
@@ -854,7 +834,7 @@ def test_type_check_when_set_is_not_under_lock():
     instance = SomeClass()
 
     instance.__locks__['field'] = LockTraceWrapper(instance.__locks__['field'])
-    SomeClass.field.check_type_hints = lambda x, y, z: instance.__locks__['field'].notify('kek')
+    SomeClass.field.check_type_hints = lambda x, y, z, raise_all: instance.__locks__['field'].notify('kek')
     instance.field = 5
 
     assert instance.field == 5
@@ -869,7 +849,6 @@ def test_type_check_when_set_is_before_validation():
     def validation(value):
         nonlocal flags
         if start_check:
-            print(value)
             flags.append('validation')
 
         return isinstance(value, int)
@@ -880,7 +859,7 @@ def test_type_check_when_set_is_before_validation():
     instance = SomeClass()
 
     old_check_type_hints = SomeClass.field.check_type_hints
-    SomeClass.field.check_type_hints = lambda x, y, z: flags.append('type_check') is old_check_type_hints(x, y, z)
+    SomeClass.field.check_type_hints = lambda x, y, z, raise_all: flags.append('type_check') is old_check_type_hints(x, y, z, raise_all=raise_all)
     start_check = True
 
     with pytest.raises(TypeError):
@@ -2055,3 +2034,112 @@ def test_reverse_conflicts_off_for_default_factory(class_flag, field_flag):
 
     assert instance.field == 10
     assert instance.other_lazy_field == 15
+
+
+def test_conversion_is_not_under_field_lock():
+    locks = []
+
+    def conversion(value: int) -> int:
+        for lock in locks:
+            lock.notify('conversion')
+        return value * 2
+
+    class SomeClass(Storage):
+        field = Field(42, conversion=conversion)
+
+    storage = SomeClass()
+
+    lock = LockTraceWrapper(storage.__locks__['field'])
+    storage.__locks__['field'] = lock
+    locks.append(lock)
+
+    storage.field = 5
+
+    assert storage.field == 10
+
+    assert not lock.was_event_locked('conversion') and lock.trace
+
+
+def test_conflicts_check_on_set_is_after_conversion():
+    class SomeClass(Storage):
+        field: int = Field(5, conversion=lambda x: x * 2, conflicts={'other_field': lambda old, new, other_old, other_new: new > other_new})
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    with pytest.raises(ValueError, match=match('The new "20" (int) value of the "field" field conflicts with the "10" (int) value of the "other_field" field.')):
+        instance.field = 10
+
+
+def test_conflicts_check_on_defaults_is_after_conversion():
+    with pytest.raises(ValueError, match=match('The "20" (int) default value of the "field" field conflicts with the "10" (int) value of the "other_field" field.')):
+        class SomeClass(Storage):
+            field: int = Field(10, conversion=lambda x: x * 2, conflicts={'other_field': lambda old, new, other_old, other_new: new > other_new})
+            other_field: int = Field(10)
+
+
+def test_value_check_for_defaults_is_after_conversion():
+    with pytest.raises(ValueError, match=match('The value "20" (int) of the "field" field does not match the validation.')):
+        class SomeClass(Storage):
+            field: int = Field(10, conversion=lambda x: x * 2, validation=lambda x: x == 10)
+            other_field: int = Field(10)
+
+
+def test_value_check_for_set_is_after_conversion():
+    class SomeClass(Storage):
+        field: int = Field(5, conversion=lambda x: x * 2, validation=lambda x: x == 10)
+        other_field: int = Field(10)
+
+    instance = SomeClass()
+
+    with pytest.raises(ValueError, match=match('The value "20" (int) of the "field" field does not match the validation.')):
+        instance.field = 10
+
+
+def test_type_check_for_defaults_is_before_conversion():
+    with pytest.raises(TypeError, match=match('The value "5" (int) of the "field" field does not match the type str.')):
+        class SomeClass(Storage):
+            field: str = Field(5, conversion=lambda x: str(x))
+
+
+def test_type_check_for_defaults_is_after_conversion():
+    with pytest.raises(TypeError, match=match('The value "5" (str) of the "field" field does not match the type int.')):
+        class SomeClass(Storage):
+            field: int = Field(5, conversion=lambda x: str(x))
+
+
+def test_type_check_for_set_is_before_conversion():
+    class SomeClass(Storage):
+        field: Union[int, str] = Field(5, conversion=lambda x: str(x))
+
+    instance = SomeClass()
+
+    assert instance.field == '5'
+
+    with pytest.raises(TypeError, match=match('The value "5.5" (float) of the "field" field does not match the type Union.')):
+        instance.field = 5.5
+
+
+def test_type_check_for_set_is_after_conversion():
+    class SomeClass(Storage):
+        field: int = Field(5, conversion=lambda x: x if x == 5 else str(x))
+
+    instance = SomeClass()
+
+    assert instance.field == 5
+
+    with pytest.raises(TypeError, match=match('The value "6" (str) of the "field" field does not match the type int.')):
+        instance.field = 6
+
+
+def test_basic_conversion_when_set_and_init_with_passed_type_check_for_new_and_old_results():
+    class SomeClass(Storage):
+        field: int = Field(10, conversion=lambda x: x * 2)
+
+    instance = SomeClass()
+
+    assert instance.field == 20
+
+    instance.field = 3
+
+    assert instance.field == 6
