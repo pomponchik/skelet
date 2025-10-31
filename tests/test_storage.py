@@ -2101,7 +2101,12 @@ def test_type_check_for_set_is_before_conversion():
 
     assert instance.field == '5'
 
-    with pytest.raises(TypeError, match=match('The value "5.5" (float) of the "field" field does not match the type Union.')):
+    if sys.version_info < (3, 10):
+        type_representation = 'typing.Union'
+    else:
+        type_representation = 'Union'
+
+    with pytest.raises(TypeError, match=match(f'The value "5.5" (float) of the "field" field does not match the type {type_representation}.')):
         instance.field = 5.5
 
 
@@ -2180,18 +2185,6 @@ def test_conversion_for_default_factory():
         field: int = Field(default_factory=lambda: 10, conversion=lambda x: x * 2)
 
     assert SomeClass().field == 20
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def test_type_check_is_before_conversion_for_default_factory():
