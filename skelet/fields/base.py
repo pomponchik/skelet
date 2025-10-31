@@ -62,7 +62,7 @@ class Field(Generic[ValueType]):
 
     def __set_name__(self, owner: Type[Storage], name: str) -> None:
         if name.startswith('_'):
-            self.raise_exception_in_storage(ValueError(f'Field name "{name}" cannot start with an underscore.'))
+            self.raise_exception_in_storage(ValueError(f'Field name "{name}" cannot start with an underscore.'), raising_on=False)
 
         with self.lock:
             if self.base_class is not None:

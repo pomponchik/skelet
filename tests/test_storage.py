@@ -597,25 +597,15 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
 
 
 def test_try_to_use_underscored_name_for_field():
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                _field: int = Field(15)
-    else:
-        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.\nError calling __set_name__ on \'Field\' instance \'_field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                _field: int = Field(15)
+    with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.')):
+        class SomeClass(Storage):
+            _field: int = Field(15)
 
 
 def test_try_to_use_underscored_name_for_field_with_doc():
-    if sys.version_info < (3, 12):
-        with pytest.raises(RuntimeError):
-            class SomeClass(Storage):
-                _field: int = Field(15, doc='some doc')
-    else:
-        with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.\nError calling __set_name__ on \'Field\' instance \'_field\' in \'SomeClass\'')):
-            class SomeClass(Storage):
-                _field: int = Field(15, doc='some doc')
+    with pytest.raises(ValueError, match=match('Field name "_field" cannot start with an underscore.')):
+        class SomeClass(Storage):
+            _field: int = Field(15, doc='some doc')
 
 
 @pytest.mark.parametrize(
