@@ -20,12 +20,16 @@ class Storage:
     def __init__(self, **kwargs: Any) -> None:
         self.__values__: Dict[str, Any] = {}
         self.__locks__ = {field_name: Lock() for field_name in self.__field_names__}
+        deduplicated_fields = set(self.__field_names__)
 
         for field_name in self.__field_names__:
             field = getattr(type(self), field_name)
             lock = self.__locks__[field_name]
             if field.conflicts is not None:
                 for another_field_name in field.conflicts:
+                    self.__locks__[another_field_name] = lock
+            if field.share_mutex_with is not None:
+                for another_field_name in field.share_mutex_with:
                     self.__locks__[another_field_name] = lock
 
         for field_name in self.__field_names__:
@@ -71,7 +75,6 @@ class Storage:
                         if checker(self.__values__[conflicting_field_name], self.__values__[conflicting_field_name], self.__values__[field_name], self.__values__[field_name]):
                             raise ValueError(f'The {conflicting_field.get_value_representation(self.__values__[conflicting_field_name])} deferred default value of the {conflicting_field.get_field_name_representation()} conflicts with the {field.get_value_representation(self.__values__[field_name])} value of the {field.get_field_name_representation()}.')
 
-        deduplicated_fields = set(self.__field_names__)
         for key, value in kwargs.items():
             if key not in deduplicated_fields:
                 raise KeyError(f'The "{key}" field is not defined.')
@@ -101,6 +104,11 @@ class Storage:
 
             for field_name in cls.__field_names__:
                 field = getattr(cls, field_name)
+
+                if field.share_mutex_with is not None:
+                    for another_field_name in field.share_mutex_with:
+                        if another_field_name not in deduplicated_field_names:
+                            raise NameError(f'You indicated that you need to share the mutex of {field.get_field_name_representation()} with field "{another_field_name}", but field "{another_field_name}" does not exist.')
 
                 if field.conflicts is not None:
                     for conficting_field_name, checker in field.conflicts.items():

@@ -46,6 +46,7 @@ class Field(Generic[ValueType]):
         else:
             self._default_before_conversion = MISSING
             self._default = default
+
         self._default_factory = default_factory
         self.read_only = read_only
         self.doc = doc
@@ -56,6 +57,7 @@ class Field(Generic[ValueType]):
         self.conflicts = conflicts
         self.reverse_conflicts_on = reverse_conflicts
         self.conversion = conversion
+        self.share_mutex_with = share_mutex_with
 
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None

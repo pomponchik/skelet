@@ -2222,3 +2222,60 @@ def test_validation_is_after_conversion_for_default_factory_when_its_off():
 
     with pytest.raises(ValueError, match=match('The value "10" (int) of the "field" field does not match the validation.')):
         instance.field = 5
+
+
+def test_share_locks():
+    class SomeClass(Storage):
+        first_field: int = Field(1, share_mutex_with=['second_field'])
+        second_field: int = Field(2)
+        third_field: int = Field(3)
+        forth_field: int = Field(4, conflicts={'fifth_field': lambda x, y, z, m: False})
+        fifth_field: int = Field(5)
+
+    instance = SomeClass()
+
+    assert instance.__locks__['first_field'] is instance.__locks__['second_field']
+
+    assert instance.__locks__['first_field'] is not instance.__locks__['third_field']
+    assert instance.__locks__['first_field'] is not instance.__locks__['forth_field']
+    assert instance.__locks__['first_field'] is not instance.__locks__['fifth_field']
+
+    assert instance.__locks__['second_field'] is not instance.__locks__['third_field']
+    assert instance.__locks__['second_field'] is not instance.__locks__['forth_field']
+    assert instance.__locks__['second_field'] is not instance.__locks__['fifth_field']
+
+    assert instance.__locks__['third_field'] is not instance.__locks__['forth_field']
+    assert instance.__locks__['third_field'] is not instance.__locks__['fifth_field']
+
+    assert instance.__locks__['forth_field'] is instance.__locks__['fifth_field']
+
+
+def test_non_existing_field_to_share_mutex():
+    with pytest.raises(NameError, match=match('You indicated that you need to share the mutex of "first_field" field with field "sacond_field", but field "sacond_field" does not exist.')):
+        class SomeClass(Storage):
+            first_field: int = Field(1, share_mutex_with=['sacond_field'])
+            second_field: int = Field(2)
+
+
+def test_share_mutex_with_twice():
+    class SomeClass(Storage):
+        first_field: int = Field(1, share_mutex_with=['second_field'])
+        second_field: int = Field(2, share_mutex_with=['third_field'])
+        third_field: int = Field(3)
+
+    instance = SomeClass()
+
+    assert instance.__locks__['first_field'] is instance.__locks__['second_field']
+    assert instance.__locks__['third_field'] is instance.__locks__['third_field']
+
+
+def test_share_mutex_with_conflicting_field():
+    class SomeClass(Storage):
+        first_field: int = Field(1, share_mutex_with=['second_field'], conflicts={'third_field': lambda x, y, z, m: False})
+        second_field: int = Field(2)
+        third_field: int = Field(3)
+
+    instance = SomeClass()
+
+    assert instance.__locks__['first_field'] is instance.__locks__['second_field']
+    assert instance.__locks__['third_field'] is instance.__locks__['third_field']
