@@ -15,7 +15,7 @@ ValueType = TypeVar('ValueType')
 if version_info < (3, 9):  # pragma: no cover
     SequenceWithStrings = Sequence
 else:
-    SequenceWithStrings = Sequence[str]
+    SequenceWithStrings = Sequence[str]  # type: ignore[misc, assignment]
 
 class Field(Generic[ValueType]):
     def __init__(
