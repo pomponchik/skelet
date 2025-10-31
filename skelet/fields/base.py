@@ -1,6 +1,7 @@
 from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, Dict, get_type_hints, get_origin, cast
 from threading import Lock
 from dataclasses import MISSING, _MISSING_TYPE
+from collections.abc import Sequence
 
 from locklib import ContextLockProtocol
 from simtypes import check
@@ -26,6 +27,7 @@ class Field(Generic[ValueType]):
         conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
         reverse_conflicts: bool = True,
         conversion: Optional[Callable[[ValueType], ValueType]] = None,
+        share_mutex_with: Optional[Sequence[str]] = None,
     ) -> None:
         if default is MISSING and default_factory is None:
             raise ValueError('The default value or default value factory must be specified for the field.')
