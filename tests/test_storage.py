@@ -2128,3 +2128,103 @@ def test_basic_conversion_when_set_and_init_with_passed_type_check_for_new_and_o
     instance.field = 3
 
     assert instance.field == 6
+
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'field': 15,
+        },),
+    ],
+)
+def test_conversion_for_source(config_path):
+    class SomeClass(Storage, sources=[TOMLSource(config_path)]):
+        field: int = Field(10, conversion=lambda x: x * 2)
+
+    assert SomeClass().field == 30
+
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'field': 15,
+        },),
+    ],
+)
+def test_type_check_before_conversion_for_source(config_path):
+    class SomeClass(Storage, sources=[TOMLSource(config_path)]):
+        field: str = Field('kek', conversion=lambda x: str(x))
+
+    with pytest.raises(TypeError, match=match('The value "15" (int) of the "field" field does not match the type str.')):
+        SomeClass()
+
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'field': 15,
+        },),
+    ],
+)
+def test_type_check_after_conversion_for_source(config_path):
+    with pytest.raises(TypeError, match=match('The value "10" (str) of the "field" field does not match the type int.')):
+        class SomeClass(Storage, sources=[TOMLSource(config_path)]):
+            field: int = Field(10, conversion=lambda x: str(x))
+
+
+def test_conversion_for_default_factory():
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: 10, conversion=lambda x: x * 2)
+
+    assert SomeClass().field == 20
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def test_type_check_is_before_conversion_for_default_factory():
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 10, conversion=lambda x: str(x))
+
+    with pytest.raises(TypeError, match=match('The value "10" (int) of the "field" field does not match the type str.')):
+        SomeClass()
+
+
+def test_type_check_is_after_conversion_for_default_factory():
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: 10, conversion=lambda x: str(x))
+
+    with pytest.raises(TypeError, match=match('The value "10" (str) of the "field" field does not match the type int.')):
+        SomeClass()
+
+
+def test_validation_is_after_conversion_for_default_factory():
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: 5, conversion=lambda x: 10, validation=lambda x: x != 10)
+
+    with pytest.raises(ValueError, match=match('The value "10" (int) of the "field" field does not match the validation.')):
+        SomeClass()
+
+
+def test_validation_is_after_conversion_for_default_factory_when_its_off():
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: 5, conversion=lambda x: 10, validation=lambda x: x != 10, validate_default=False)
+
+    instance = SomeClass()
+
+    assert instance.field == 10
+
+    with pytest.raises(ValueError, match=match('The value "10" (int) of the "field" field does not match the validation.')):
+        instance.field = 5
