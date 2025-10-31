@@ -74,7 +74,7 @@ class Storage:
             super().__init_subclass__(**kwargs)
 
             cls.__sources__ = SourcesCollection(sources) if sources is not None else SourcesCollection([])
-            cls._reverse_conflicts = reverse_conflicts
+            cls._reverse_conflicts_on = reverse_conflicts
 
             deduplicated_field_names = set(cls.__field_names__)
 

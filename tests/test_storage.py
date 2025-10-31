@@ -2027,3 +2027,31 @@ def test_reverse_conflicts_for_default_factory():
 
     assert instance.field == 10
     assert instance.other_lazy_field == 15
+
+
+@pytest.mark.parametrize(
+    ['class_flag', 'field_flag'],
+    [
+        (True, False),
+        (False, True),
+        (False, False),
+    ],
+)
+def test_reverse_conflicts_off_for_default_factory(class_flag, field_flag):
+    other_lazy_field_value = 5
+
+    class SomeClass(Storage, reverse_conflicts=class_flag):
+        field: int = Field(10, conflicts={'other_lazy_field': lambda old, new, other_old, other_new: new > other_old}, reverse_conflicts=field_flag)
+        other_lazy_field: int = Field(default_factory=lambda: other_lazy_field_value)
+
+    instance = SomeClass()
+
+    assert instance.field == 10
+    assert instance.other_lazy_field == 5
+
+    other_lazy_field_value = 15
+
+    instance = SomeClass()
+
+    assert instance.field == 10
+    assert instance.other_lazy_field == 15
