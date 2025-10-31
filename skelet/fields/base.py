@@ -1,5 +1,6 @@
 from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, Dict, get_type_hints, get_origin, cast
 from threading import Lock
+from dataclasses import MISSING
 
 from locklib import ContextLockProtocol
 from simtypes import check
@@ -7,15 +8,13 @@ from simtypes import check
 from skelet.storage import Storage
 
 
-class SecondNone:
-    pass
-
 ValueType = TypeVar('ValueType')
 
 class Field(Generic[ValueType]):
     def __init__(
         self,
-        default: ValueType,
+        default: ValueType = MISSING,
+        /,
         read_only: bool = False,
         doc: Optional[str] = None,
         validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None,
@@ -25,8 +24,15 @@ class Field(Generic[ValueType]):
         read_lock: bool = False,
         conflicts: Optional[Dict[str, Callable[[ValueType, ValueType, Any, Any], bool]]] = None,
         reverse_conflicts: bool = True,
+        default_factory: Optional[Callable[[], ValueType]] = None,
     ) -> None:
-        self.default = default
+        if default is MISSING and default_factory is None:
+            raise ValueError('The default value or default value factory must be specified for the field.')
+        elif default_factory is not None and default is not MISSING:
+            raise ValueError('You can define a default value or a factory for default values, but not all at the same time.')
+
+        self._default = default
+        self._default_factory = default_factory
         self.read_only = read_only
         self.doc = doc
         self.validation = validation
@@ -60,9 +66,10 @@ class Field(Generic[ValueType]):
             self.base_class = owner
 
             self.set_field_names(owner, name)
-            self.check_type_hints(owner, name, self.default)
-            if self.validate_default:
-                self.check_value(self.default)
+            if self._default is not MISSING:
+                self.check_type_hints(owner, name, self._default)
+                if self.validate_default:
+                    self.check_value(self._default)
 
     def __get__(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
         if instance is None:
@@ -78,20 +85,7 @@ class Field(Generic[ValueType]):
             return self.unlocked_get(instance, instance_class)
 
     def unlocked_get(self, instance: Storage, instance_class: Type[Storage]) -> ValueType:
-        second_none = SecondNone()
-
-        saved_value = instance.__fields__.get(cast(str, self.name), second_none)
-
-        if not isinstance(saved_value, SecondNone):
-            return saved_value
-
-        default_from_sources = instance.__sources__.get(cast(str, self.name), second_none)
-
-        if not isinstance(default_from_sources, SecondNone):
-            self.check_type_hints(instance_class, cast(str, self.name), default_from_sources, strict=True)
-            return default_from_sources
-
-        return self.default
+        return instance.__values__.get(cast(str, self.name))
 
     def __set__(self, instance: Storage, value: ValueType) -> None:
         if self.read_only:
@@ -117,7 +111,7 @@ class Field(Generic[ValueType]):
                     if other_field_checker(other_field_value, other_field_value, old_value, value):
                         raise ValueError(f'The new {self.get_value_representation(value)} ({type(value).__name__}) value of the {self.get_field_name_representation()} conflicts with the {other_field.get_value_representation(other_field_value)} ({type(other_field_value).__name__}) value of the {other_field.get_field_name_representation()}.')
 
-            instance.__fields__[cast(str, self.name)] = value
+            instance.__values__[cast(str, self.name)] = value
             if self.change_action is not None and value != old_value:
                 self.change_action(old_value, value, instance)
 
@@ -145,9 +139,9 @@ class Field(Generic[ValueType]):
             owner.__field_names__.append(name)
 
     def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType, strict: bool = False) -> None:
-        type_hint = get_type_hints(owner).get(name, SecondNone())
+        type_hint = get_type_hints(owner).get(name, MISSING)
 
-        if isinstance(type_hint, SecondNone):
+        if type_hint is MISSING:
             return
 
         if not check(value, type_hint, strict=strict):

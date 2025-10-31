@@ -331,11 +331,11 @@ def test_get_from_inner_dict_is_thread_safe_and_use_per_fields_locks():
     field.lock = LockTraceWrapper(field.lock)
     storage.__locks__['field'] = LockTraceWrapper(storage.__locks__['field'])
     class PseudoDict:
-        def get(self, key, default):
+        def get(self, key):
             storage.__locks__['field']
             field.lock.notify('get')
             return 43
-    storage.__fields__ = PseudoDict()
+    storage.__values__ = PseudoDict()
 
     assert storage.field == 43
     assert storage.__locks__['field'].was_event_locked('get')
@@ -357,12 +357,12 @@ def test_that_set_is_thread_safe_and_use_per_field_locks():
             storage.__locks__['field'].notify('set')
             field.lock.notify('set')
 
-        def get(self, key, default):
+        def get(self, key):
             storage.__locks__['field'].notify('get')
             field.lock.notify('get')
             return 42
 
-    storage.__fields__ = PseudoDict()
+    storage.__values__ = PseudoDict()
 
     storage.field = 44
 
@@ -982,12 +982,12 @@ def test_read_lock_on(addictional_arguments):
     field.lock = LockTraceWrapper(field.lock)
 
     class PseudoDict:
-        def get(self, key, default):
+        def get(self, key):
             lock.notify('get')
             field.lock.notify('get')
             return 10
 
-    instance.__fields__ = PseudoDict()
+    instance.__values__ = PseudoDict()
 
     assert not lock.trace
     assert not field.lock.trace
@@ -1013,12 +1013,12 @@ def test_read_lock_off():
     field.lock = LockTraceWrapper(field.lock)
 
     class PseudoDict:
-        def get(self, key, default):
+        def get(self, key):
             lock.notify('get')
             field.lock.notify('get')
             return 10
 
-    instance.__fields__ = PseudoDict()
+    instance.__values__ = PseudoDict()
 
     assert not lock.trace
     assert not field.lock.trace
@@ -1777,22 +1777,31 @@ def test_source_checking_is_under_field_lock_when_its_on():
     [
         ({
             'field': '1',
-            'other_field': [14],
         },),
     ],
 )
-def test_read_bad_typed_value_from_toml_source(config_path):
+def test_read_bad_typed_value_from_toml_source_for_not_deferred_value(config_path):
     class SomeClass(Storage, sources=[TOMLSource(config_path)]):
         field: int = Field(5)
-        other_field: List[str] = Field([])
-
-    instance = SomeClass()
 
     with pytest.raises(TypeError, match=match('The value "1" (str) of the "field" field does not match the type int.')):
-        instance.field
+        SomeClass()
 
-    with pytest.raises(TypeError, match=match('The value "[14]" (list) of the "other_field" field does not match the type list.')):
-        instance.other_field
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'field': [14],
+        },),
+    ],
+)
+def test_read_bad_typed_value_from_toml_source_for_deferred_value(config_path):
+    class SomeClass(Storage, sources=[TOMLSource(config_path)]):
+        field: List[str] = Field(default_factory=list)
+
+    with pytest.raises(TypeError, match=match('The value "[14]" (list) of the "field" field does not match the type list.')):
+        SomeClass()
 
 
 def test_type_check_with_supertypes():
@@ -1830,3 +1839,191 @@ def test_type_check_with_supertypes():
 
     with pytest.raises(TypeError, match=match('The value "kek" (str) of the "other_field" field does not match the type NonNegativeInt.')):
         instance.other_field = 'kek'
+
+
+def test_wrong_defaults():
+    with pytest.raises(ValueError, match=match('The default value or default value factory must be specified for the field.')):
+        class SomeClass(Storage):
+            field: List[str] = Field()
+
+    with pytest.raises(ValueError, match=match('You can define a default value or a factory for default values, but not all at the same time.')):
+        class SomeClass(Storage):
+            field: List[str] = Field([], default_factory=list)
+
+
+def test_default_value_from_factory():
+    class SomeClass(Storage):
+        field: List[str] = Field(default_factory=list)
+
+    instance_1 = SomeClass()
+
+    assert instance_1.field == []
+
+    this_field = instance_1.field
+    assert instance_1.field is this_field
+
+    instance_2 = SomeClass()
+
+    assert instance_2.field == []
+
+    assert instance_1.field is not instance_2.field
+
+    instance_1.field.append('kek')
+
+    assert instance_1.field == ['kek']
+    assert instance_2.field == []
+
+    instance_1.field.append('lol')
+
+    assert instance_1.field == ['kek', 'lol']
+    assert instance_2.field == []
+
+
+def test_type_check_for_default_factory():
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: 'kek')
+
+    with pytest.raises(TypeError, match=match('The value "kek" (str) of the "field" field does not match the type int.')):
+        SomeClass()
+
+
+@pytest.mark.parametrize(
+    ['addictional_parameters'],
+    [
+        ({},),
+        ({'validate_default': True},),
+    ],
+)
+def test_validate_default_factory_value_fith_function_when_its_on_and_validation_not_passed(addictional_parameters):
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation=lambda x: x != 'kek', **addictional_parameters)
+
+    with pytest.raises(ValueError, match=match('The value "kek" (str) of the "field" field does not match the validation.')):
+        SomeClass()
+
+
+@pytest.mark.parametrize(
+    ['addictional_parameters'],
+    [
+        ({},),
+        ({'validate_default': True},),
+    ],
+)
+def test_validate_default_factory_value_fith_function_when_its_on_and_validation_passed(addictional_parameters):
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation=lambda x: x == 'kek', **addictional_parameters)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+@pytest.mark.parametrize(
+    ['addictional_parameters'],
+    [
+        ({},),
+        ({'validate_default': True},),
+    ],
+)
+def test_validate_default_factory_value_fith_dict_when_its_on_and_validation_not_passed(addictional_parameters):
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation={'some message': lambda x: x != 'kek'}, **addictional_parameters)
+
+    with pytest.raises(ValueError, match=match('some message')):
+        SomeClass()
+
+
+@pytest.mark.parametrize(
+    ['addictional_parameters'],
+    [
+        ({},),
+        ({'validate_default': True},),
+    ],
+)
+def test_validate_default_factory_value_fith_dict_when_its_on_and_validation_passed(addictional_parameters):
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation={'some message': lambda x: x == 'kek'}, **addictional_parameters)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+def test_validate_default_factory_value_fith_function_when_its_off_and_validation_not_passed():
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation=lambda x: x != 'kek', validate_default=False)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+def test_validate_default_factory_value_fith_function_when_its_off_and_validation_passed():
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation=lambda x: x == 'kek', validate_default=False)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+def test_validate_default_factory_value_fith_dict_when_its_off_and_validation_not_passed():
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation={'some message': lambda x: x != 'kek'}, validate_default=False)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+def test_validate_default_factory_value_fith_dict_when_its_off_and_validation_passed():
+    class SomeClass(Storage):
+        field: str = Field(default_factory=lambda: 'kek', validation={'some message': lambda x: x == 'kek'}, validate_default=False)
+
+    instance = SomeClass()
+
+    assert instance.field == 'kek'
+
+
+def test_conflicts_for_default_factory():
+    field_value = 10
+    other_lazy_field_value = 5
+    class SomeClass(Storage):
+        field: int = Field(default_factory=lambda: field_value, conflicts={'other_field': lambda old, new, other_old, other_new: new > other_old, 'other_lazy_field': lambda old, new, other_old, other_new: new > other_old})
+        other_field: int = Field(20)
+        other_lazy_field: int = Field(default_factory=lambda: other_lazy_field_value)
+
+    with pytest.raises(ValueError, match=match('The "10" (int) deferred default value of the "field" field conflicts with the "5" (int) value of the "other_lazy_field" field.')):
+        SomeClass()
+
+    field_value = 25
+
+    with pytest.raises(ValueError, match=match('The "25" (int) deferred default value of the "field" field conflicts with the "20" (int) value of the "other_field" field.')):
+        SomeClass()
+
+    field_value = 5
+    other_lazy_field_value = 30
+
+    instance = SomeClass()
+
+    assert instance.field == 5
+    assert instance.other_field == 20
+    assert instance.other_lazy_field == 30
+
+
+def test_reverse_conflicts_for_default_factory():
+    other_lazy_field_value = 5
+
+    class SomeClass(Storage):
+        field: int = Field(10, conflicts={'other_lazy_field': lambda old, new, other_old, other_new: new > other_old})
+        other_lazy_field: int = Field(default_factory=lambda: other_lazy_field_value)
+
+    with pytest.raises(ValueError, match=match('The "10" (int) deferred default value of the "field" field conflicts with the "5" (int) value of the "other_lazy_field" field.')):
+        SomeClass()
+
+    other_lazy_field_value = 15
+
+    instance = SomeClass()
+
+    assert instance.field == 10
+    assert instance.other_lazy_field == 15

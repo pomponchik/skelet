@@ -1,3 +1,4 @@
+from dataclasses import MISSING
 from typing import List, Dict, Optional, Any
 from threading import Lock
 from collections import defaultdict
@@ -10,21 +11,15 @@ from skelet.sources.abstract import AbstractSource
 
 
 class Storage:
-    __fields__: Dict[str, Any]
+    __values__: Dict[str, Any]
     __locks__: Dict[str, ContextLockProtocol]
     __field_names__: List[str] = []
     __reverse_conflicts__: Dict[str, List[str]]
     __sources__: SourcesCollection
 
     def __init__(self, **kwargs: Any) -> None:
-        self.__fields__: Dict[str, Any] = {}
+        self.__values__: Dict[str, Any] = {}
         self.__locks__ = {field_name: Lock() for field_name in self.__field_names__}
-
-        deduplicated_fields = set(self.__field_names__)
-        for key, value in kwargs.items():
-            if key not in deduplicated_fields:
-                raise KeyError(f'The "{key}" field is not defined.')
-            setattr(self, key, value)
 
         for field_name in self.__field_names__:
             field = getattr(type(self), field_name)
@@ -33,10 +28,53 @@ class Storage:
                 for another_field_name in field.conflicts:
                     self.__locks__[another_field_name] = lock
 
+        for field_name in self.__field_names__:
+            content = self.__sources__.get(field_name, MISSING)
+            field = getattr(type(self), field_name)
+            if content is not MISSING:
+                field.check_type_hints(type(self), field_name, content, strict=True)
+                field.check_value(content)
+                self.__values__[field_name] = content
+            else:
+                if field._default_factory is not None:
+                    content = field._default_factory()
+                    field.check_type_hints(type(self), field_name, content, strict=True)
+                    if field.validate_default:
+                        field.check_value(content)
+                    self.__values__[field_name] = content
+                else:
+                    self.__values__[field_name] = field._default
+
+        for field_name in self.__field_names__:
+            field = getattr(type(self), field_name)
+
+            if field._default_factory is not None:
+                if field.conflicts is not None:
+                    for conflicting_field_name, checker in field.conflicts.items():
+                        if checker(self.__values__[field_name], self.__values__[field_name], self.__values__[conflicting_field_name], self.__values__[conflicting_field_name]):
+                            conflicting_field = getattr(type(self), conflicting_field_name)
+                            raise ValueError(f'The {field.get_value_representation(self.__values__[field_name])} ({type(self.__values__[field_name]).__name__}) deferred default value of the {field.get_field_name_representation()} conflicts with the {conflicting_field.get_value_representation(self.__values__[conflicting_field_name])} ({type(self.__values__[conflicting_field_name]).__name__}) value of the {conflicting_field.get_field_name_representation()}.')
+
+                if field_name in self.__reverse_conflicts__:
+                    conflicting_field_names = self.__reverse_conflicts__[field_name]
+                    for conflicting_field_name in conflicting_field_names:
+                        conflicting_field = getattr(type(self), conflicting_field_name)
+                        checker = conflicting_field.conflicts[field_name]
+                        if checker(self.__values__[conflicting_field_name], self.__values__[conflicting_field_name], self.__values__[field_name], self.__values__[field_name]):
+                            raise ValueError(f'The {conflicting_field.get_value_representation(self.__values__[conflicting_field_name])} ({type(self.__values__[conflicting_field_name]).__name__}) deferred default value of the {conflicting_field.get_field_name_representation()} conflicts with the {field.get_value_representation(self.__values__[field_name])} ({type(self.__values__[field_name]).__name__}) value of the {field.get_field_name_representation()}.')
+
+        deduplicated_fields = set(self.__field_names__)
+        for key, value in kwargs.items():
+            if key not in deduplicated_fields:
+                raise KeyError(f'The "{key}" field is not defined.')
+            setattr(self, key, value)
+
+
     def __init_subclass__(cls, reverse_conflicts: bool = True, sources: Optional[List[AbstractSource]] = None, **kwargs: Any):
             super().__init_subclass__(**kwargs)
 
             cls.__sources__ = SourcesCollection(sources) if sources is not None else SourcesCollection([])
+            cls._reverse_conflicts = reverse_conflicts
 
             deduplicated_field_names = set(cls.__field_names__)
 
@@ -56,9 +94,9 @@ class Storage:
                     for conficting_field_name, checker in field.conflicts.items():
                         if conficting_field_name not in deduplicated_field_names:
                             raise NameError(f'You have set a conflict condition for {field.get_field_name_representation()} with field "{conficting_field_name}", but the field "{conficting_field_name}" does not exist in the class {cls.__name__}.')
-                        elif reverse_conflicts and field.reverse_conflicts_on and checker(field.default, field.default, getattr(cls, conficting_field_name).default, getattr(cls, conficting_field_name).default):
+                        elif field._default is not MISSING and getattr(cls, conficting_field_name)._default is not MISSING and reverse_conflicts and field.reverse_conflicts_on and checker(field._default, field._default, getattr(cls, conficting_field_name)._default, getattr(cls, conficting_field_name)._default):
                             other_field = getattr(cls, conficting_field_name)
-                            raise ValueError(f'The {field.get_value_representation(field.default)} ({type(field.default).__name__}) default value of the {field.get_field_name_representation()} conflicts with the {other_field.get_value_representation(other_field.default)} ({type(other_field.default).__name__}) value of the {other_field.get_field_name_representation()}.')
+                            raise ValueError(f'The {field.get_value_representation(field._default)} ({type(field._default).__name__}) default value of the {field.get_field_name_representation()} conflicts with the {other_field.get_value_representation(other_field._default)} ({type(other_field._default).__name__}) value of the {other_field.get_field_name_representation()}.')
 
     def __repr__(self) -> str:
         fields_content = {}
