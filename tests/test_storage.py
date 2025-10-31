@@ -541,11 +541,12 @@ def test_more_examples_of_type_check_when_redefine_defaults_initing_new_object_f
         field: Optional[int] = Field(15, secret=secret)
 
     if sys.version_info < (3, 10):
-        with pytest.raises(AttributeError):
-            SomeClass(field='kek')
+        type_representation = 'typing.Union'
     else:
-        with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field does not match the type Union.')):
-            SomeClass(field='kek')
+        type_representation = 'Union'
+
+    with pytest.raises(TypeError, match=match(f'The value {wrong_value} (str) of the "field" field does not match the type {type_representation}.')):
+        SomeClass(field='kek')
 
 
     instance = SomeClass(field=None)
