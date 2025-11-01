@@ -22,6 +22,7 @@ It's ready now:
 - [x] The specified sections in the `pyproject.toml` file
 - [x] One or more separate `toml` files
 - [x] 'json' format support
+- [x] 'yaml' format support
 - [x] Special classes for checking through types for belonging to sets of positive or natural numbers
 - [x] Default factories
 - [x] Converting values from one to another
@@ -34,7 +35,6 @@ To do:
 - [ ] Class inheritance support
 - [ ] Reading parameters from the CLI
 - [ ] Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
-- [ ] 'yaml' format support
 
 Links to add here:
 
