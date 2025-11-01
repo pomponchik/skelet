@@ -38,3 +38,6 @@ To do:
 Links to add here:
 
 - https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
+
+Promo ideas:
+- No metaclasses
