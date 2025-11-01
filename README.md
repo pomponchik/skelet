@@ -41,4 +41,5 @@ Links to add here:
 - https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
 
 Promo ideas:
+- Simple and elegant syntax
 - No metaclasses
