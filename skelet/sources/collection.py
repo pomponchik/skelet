@@ -1,4 +1,4 @@
-from typing import List, Type, TypeVar, Any
+from typing import List, Type, TypeVar, Optional, Any
 
 from printo import descript_data_object
 
@@ -29,7 +29,7 @@ class SourcesCollection(AbstractSource):
         except KeyError:
             return default
 
-    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SecondNone()) -> ExpectedType:
+    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SecondNone()) -> Optional[ExpectedType]:
         for source in self.sources:
             maybe_result = source.type_awared_get(key, hint, default=default)
             if maybe_result is not default:

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Optional, Any
 from abc import ABC, abstractmethod
 from typing import TypeVar, Type
 
@@ -17,7 +17,7 @@ class AbstractSource(ABC):
     def __getitem__(self, key: str) -> Any:
         ...  # pragma: no cover
 
-    def get(self, key: str, default: Any = None) -> ExpectedType:
+    def get(self, key: str, default: Any = None) -> Any:
         try:
             result = self[key]
         except KeyError:
@@ -25,7 +25,7 @@ class AbstractSource(ABC):
 
         return result
 
-    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SECOND_NONE) -> ExpectedType:
+    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SECOND_NONE) -> Optional[ExpectedType]:
         result = self.get(key, default)
 
         if result is default:

@@ -169,9 +169,9 @@ class Field(Generic[ValueType]):
             owner.__field_names__.append(name)
 
     def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType, strict: bool = False, raise_all: bool = False) -> None:
-        if not check(value, self.type_hint, strict=strict):
+        if not check(value, self.type_hint, strict=strict):  # type: ignore[arg-type]
             origin = get_origin(self.type_hint)
-            type_hint_name = self.type_hint.__name__ if origin is None else origin.__name__ if hasattr(origin, '__name__') else repr(origin)  # type: ignore[union-attr]
+            type_hint_name = self.type_hint.__name__ if origin is None else origin.__name__ if hasattr(origin, '__name__') else repr(origin)  # type: ignore[attr-defined]
             self.raise_exception_in_storage(TypeError(f'The value {self.get_value_representation(value)} of the {self.get_field_name_representation()} does not match the type {type_hint_name}.'), raise_all)
 
     def get_field_name_representation(self) -> str:

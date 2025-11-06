@@ -34,7 +34,7 @@ class EnvSource(AbstractSource):
             return cast(Dict[str, str], copy(os.environ))
 
         result = {}
-        seen_keys = {}
+        seen_keys: Dict[str, str] = {}
         for key, value in os.environ.items():
             capitalized_key = key.upper()
             if capitalized_key in seen_keys:
@@ -45,7 +45,7 @@ class EnvSource(AbstractSource):
 
         return result
 
-    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SecondNone()) -> ExpectedType:
+    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SecondNone()) -> Optional[ExpectedType]:
         subresult = self.get(key, default)
 
         if subresult is default:
