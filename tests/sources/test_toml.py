@@ -251,5 +251,5 @@ def test_type_awared_get(toml_config_path):
     with pytest.raises(TypeError, match=match('The value of the "list_with_strings" field did not pass the type check.')):
         TOMLSource(toml_config_path).type_awared_get('list_with_strings', List[int])
 
-    with pytest.raises(KeyError):
-        TOMLSource(toml_config_path).type_awared_get('key2', str)
+    assert TOMLSource(toml_config_path).type_awared_get('key2', str) is None
+    assert TOMLSource(toml_config_path).type_awared_get('key2', str, default='kek') == 'kek'

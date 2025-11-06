@@ -117,5 +117,5 @@ def test_type_awared_get(yaml_config_path):
     with pytest.raises(TypeError, match=match('The value of the "list_with_strings" field did not pass the type check.')):
         YAMLSource(yaml_config_path).type_awared_get('list_with_strings', List[int])
 
-    with pytest.raises(KeyError):
-        YAMLSource(yaml_config_path).type_awared_get('key2', str)
+    assert YAMLSource(yaml_config_path).type_awared_get('key2', str) is None
+    assert YAMLSource(yaml_config_path).type_awared_get('key2', str, default='kek') == 'kek'

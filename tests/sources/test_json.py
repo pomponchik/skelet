@@ -117,5 +117,5 @@ def test_type_awared_get(json_config_path):
     with pytest.raises(TypeError, match=match('The value of the "list_with_strings" field did not pass the type check.')):
         JSONSource(json_config_path).type_awared_get('list_with_strings', List[int])
 
-    with pytest.raises(KeyError):
-        JSONSource(json_config_path).type_awared_get('key2', str)
+    assert JSONSource(json_config_path).type_awared_get('key2', str) is None
+    assert JSONSource(json_config_path).type_awared_get('key2', str, default='kek') == 'kek'

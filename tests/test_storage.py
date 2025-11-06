@@ -5,7 +5,7 @@ import pytest
 from full_match import match
 from locklib import LockTraceWrapper
 
-from skelet import Storage, Field, TOMLSource, JSONSource, YAMLSource, NaturalNumber, NonNegativeInt
+from skelet import Storage, Field, TOMLSource, JSONSource, YAMLSource, EnvSource, MemorySource, NaturalNumber, NonNegativeInt
 
 
 def test_try_to_get_descriptor_object_from_class_inherited_from_storage():
@@ -1643,7 +1643,7 @@ def test_reverse_fields_container_in_case_of_inheritance_with_same_field():
     ['sources'],
     [
         ([],),
-        ([{}],),
+        ([MemorySource({})],),
     ],
 )
 def test_empty_set_of_sources(sources):
@@ -1658,7 +1658,7 @@ def test_empty_set_of_sources(sources):
 
 
 def test_reset_value_using_source():
-    class SomeClass(Storage, sources=[{'field': 15}]):
+    class SomeClass(Storage, sources=[MemorySource({'field': 15})]):
         field: int = Field(5)
         other_field: int = Field(10)
 
@@ -1673,7 +1673,7 @@ def test_reset_value_using_source():
 
 
 def test_order_of_sources():
-    class SomeClass(Storage, sources=[{'field': 15}, {'field': 23}]):
+    class SomeClass(Storage, sources=[MemorySource({'field': 15}), MemorySource({'field': 23})]):
         field: int = Field(5)
         other_field: int = Field(10)
 
@@ -1771,7 +1771,7 @@ def test_source_checking_is_under_field_lock_when_its_on():
                 lock.notify('get')
             return 1
 
-    class SomeClass(Storage, sources=[PseudoDict()]):
+    class SomeClass(Storage, sources=[MemorySource(PseudoDict())]):
         field: int = Field(10, read_lock=True)
         other_field: int = Field(20)
 
@@ -2443,3 +2443,19 @@ def test_share_mutex_with_conflicting_field():
 
     assert instance.__locks__['first_field'] is instance.__locks__['second_field']
     assert instance.__locks__['third_field'] is instance.__locks__['third_field']
+
+
+def test_get_something_from_env(monkeypatch):
+    monkeypatch.setenv("SKELET_FIELD", "1")
+    monkeypatch.setenv("SKELET_ANOTHER_FIELD", "kek")
+
+    class SomeClass(Storage, sources=EnvSource.for_library('skelet')):
+        field: int = Field(10)
+        another_field: str = Field('lol')
+        third_field: List[int] = Field(default_factory=lambda: [1, 2, 3])
+
+    instance = SomeClass()
+
+    assert instance.field == 1
+    assert instance.another_field == 'kek'
+    assert instance.third_field == [1, 2, 3]

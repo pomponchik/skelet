@@ -3,19 +3,19 @@ from typing import List
 import pytest
 from full_match import match
 
-from skelet import TOMLSource, JSONSource
+from skelet import TOMLSource, JSONSource, MemorySource
 from skelet.sources.collection import SourcesCollection
 
 
 
 def test_there_is_no_that_key():
     with pytest.raises(KeyError):
-        SourcesCollection([{}, {}, {}])['key']
+        SourcesCollection([MemorySource({}), MemorySource({}), MemorySource({})])['key']
 
 
 def test_there_is_no_that_key_and_use_get_method():
-    assert SourcesCollection([{}, {}, {}]).get('key') is None
-    assert SourcesCollection([{}, {}, {}]).get('key', 'value') == 'value'
+    assert SourcesCollection([MemorySource({}), MemorySource({}), MemorySource({})]).get('key') is None
+    assert SourcesCollection([MemorySource({}), MemorySource({}), MemorySource({})]).get('key', 'value') == 'value'
 
 
 @pytest.mark.parametrize(
@@ -59,33 +59,30 @@ def test_repr():
 
 
 def test_type_awared_get():
-    assert SourcesCollection([{'key': 'kek'}]).type_awared_get('key', str) == 'kek'
-    assert SourcesCollection([{}, {'key': 'kek'}]).type_awared_get('key', str) == 'kek'
-    assert SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key', str) == 'kek'
-    assert SourcesCollection([{'key': 123}]).type_awared_get('key', int) == 123
-    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List[int]) == [123, 456]
-    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List) == [123, 456]
-    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', list) == [123, 456]
+    assert SourcesCollection([MemorySource({'key': 'kek'})]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'})]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([MemorySource({'key': 123})]).type_awared_get('key', int) == 123
+    assert SourcesCollection([MemorySource({'key': [123, 456]})]).type_awared_get('key', List[int]) == [123, 456]
+    assert SourcesCollection([MemorySource({'key': [123, 456]})]).type_awared_get('key', List) == [123, 456]
+    assert SourcesCollection([MemorySource({'key': [123, 456]})]).type_awared_get('key', list) == [123, 456]
 
-    assert SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key2', str, default='lol') == 'lol'
-
-    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
-        SourcesCollection([{'key': 123}]).type_awared_get('key', str)
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key2', str, default='lol') == 'lol'
 
     with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
-        SourcesCollection([{'key': '123'}]).type_awared_get('key', int)
+        SourcesCollection([MemorySource({'key': 123})]).type_awared_get('key', str)
 
     with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
-        SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List[str])
+        SourcesCollection([MemorySource({'key': '123'})]).type_awared_get('key', int)
 
     with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
-        SourcesCollection([{'key': ['123', '456']}]).type_awared_get('key', List[int])
+        SourcesCollection([MemorySource({'key': [123, 456]})]).type_awared_get('key', List[str])
 
-    with pytest.raises(KeyError):
-        SourcesCollection([{'key': 'kek'}]).type_awared_get('key2', str)
+    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
+        SourcesCollection([MemorySource({'key': ['123', '456']})]).type_awared_get('key', List[int])
 
-    with pytest.raises(KeyError):
-        SourcesCollection([{'key': 'kek'}, {}]).type_awared_get('key2', str)
-
-    with pytest.raises(KeyError):
-        SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key2', str)
+    assert SourcesCollection([MemorySource({'key': 'kek'})]).type_awared_get('key2', str) is None
+    assert SourcesCollection([MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key2', str) is None
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key2', str) is None
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key2', str, default='kek') == 'kek'
+    assert SourcesCollection([MemorySource({}), MemorySource({'key': 'kek'}), MemorySource({})]).type_awared_get('key2', str, default=1) == 1

@@ -53,7 +53,7 @@ class EnvSource(AbstractSource):
         if subresult is default:
             if not isinstance(default, SecondNone):
                 return default
-            raise KeyError(key)
+            return None
 
         return from_string(subresult, hint)
 

@@ -81,8 +81,9 @@ def test_there_is_no_that_key(monkeypatch):
     with pytest.raises(KeyError):
         EnvSource()['lol']
 
-    with pytest.raises(KeyError):
-        EnvSource().type_awared_get('lol', str)
+    assert EnvSource().type_awared_get('lol', str) is None
+    assert EnvSource().type_awared_get('lol', str, default='kek') == 'kek'
+    assert EnvSource().type_awared_get('lol', str, default=123) == 123
 
 
 def test_read_existing_key(monkeypatch):
@@ -100,12 +101,13 @@ def test_read_existing_key(monkeypatch):
     assert EnvSource(case_sensitive=True).type_awared_get('lol', str) == '1'
     assert EnvSource(case_sensitive=True).type_awared_get('lol', int) == 1
 
+    assert EnvSource(case_sensitive=True).type_awared_get('LOL', str) is None
+    assert EnvSource(case_sensitive=True).type_awared_get('LOL', int) is None
+    assert EnvSource(case_sensitive=True).type_awared_get('LOL', str, default=1) == 1
+    assert EnvSource(case_sensitive=True).type_awared_get('LOL', str, default='kek') == 'kek'
+
     with pytest.raises(KeyError):
         EnvSource(case_sensitive=True)['LOL']
-    with pytest.raises(KeyError):
-        EnvSource(case_sensitive=True).type_awared_get('LOL', str)
-    with pytest.raises(KeyError):
-        EnvSource(case_sensitive=True).type_awared_get('LOL', int)
 
 
 def test_type_awared_get(monkeypatch):
