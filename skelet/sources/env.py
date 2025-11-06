@@ -1,11 +1,9 @@
 import os
 from typing import List, Dict, Type, TypeVar, Optional, Any, cast
-from threading import Lock
 from functools import cached_property
 from copy import copy
-from collections import defaultdict
 
-from printo import descript_data_object, not_none
+from printo import descript_data_object
 from simtypes import from_string
 
 from skelet.sources.abstract import AbstractSource
