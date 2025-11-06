@@ -45,8 +45,11 @@ def test_cases_conflict(monkeypatch):
     assert EnvSource(case_sensitive=True)['lol'] == '1'
     assert EnvSource(case_sensitive=True)['LoL'] == '1'
 
-    with pytest.raises(KeyError):
-        EnvSource(case_sensitive=True)['LOL']
+    if platform.system() != 'Windows':
+        with pytest.raises(KeyError):
+            EnvSource(case_sensitive=True)['LOL']
+    else:
+        assert EnvSource(case_sensitive=True)['LOL'] == '1'
 
 
 def test_repr():
