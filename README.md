@@ -30,12 +30,12 @@ It's ready now:
 
 To do:
 
+- [ ] Aliases support
+- [ ] Individual source lists for each field, with ellipsis support
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] Class inheritance support
 - [ ] Reading parameters from the CLI
 - [ ] Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
-- [ ] Aliases support
-- [ ] Individual source lists for each field, with ellipsis support
 
 Links to add here:
 
