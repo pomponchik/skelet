@@ -1,5 +1,13 @@
 ![logo](https://raw.githubusercontent.com/pomponchik/skelet/develop/docs/assets/logo_8.svg)
 
+<details>
+  <summary>The badges are here</summary>
+
+  lol
+  kek
+
+</details>
+
 Collect all the settings in one place
 
 One object with a configuration for your project.
