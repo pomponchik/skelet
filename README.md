@@ -26,10 +26,10 @@ It's ready now:
 - [x] Default factories
 - [x] Converting values from one to another
 - [x] The ability to share a single mutex into several fields
+- [x] Subtraction of environment variables
 
 To do:
 
-- [ ] Subtraction of environment variables
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] Class inheritance support
 - [ ] Reading parameters from the CLI
