@@ -1,6 +1,6 @@
 from typing import Any
 from abc import ABC, abstractmethod
-from typing import TypeVar, Type, Any
+from typing import TypeVar, Type
 
 from simtypes import check
 
