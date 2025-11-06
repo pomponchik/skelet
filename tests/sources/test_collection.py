@@ -1,4 +1,7 @@
+from typing import List
+
 import pytest
+from full_match import match
 
 from skelet import TOMLSource, JSONSource
 from skelet.sources.collection import SourcesCollection
@@ -53,3 +56,36 @@ def test_simple_proxy():
 def test_repr():
     assert repr(SourcesCollection([TOMLSource('kek.toml')])) == "SourcesCollection([TOMLSource('kek.toml')])"
     assert repr(SourcesCollection([TOMLSource('kek.toml'), JSONSource('lol.json')])) == "SourcesCollection([TOMLSource('kek.toml'), JSONSource('lol.json')])"
+
+
+def test_type_awared_get():
+    assert SourcesCollection([{'key': 'kek'}]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([{}, {'key': 'kek'}]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key', str) == 'kek'
+    assert SourcesCollection([{'key': 123}]).type_awared_get('key', int) == 123
+    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List[int]) == [123, 456]
+    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List) == [123, 456]
+    assert SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', list) == [123, 456]
+
+    assert SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key2', str, default='lol') == 'lol'
+
+    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
+        SourcesCollection([{'key': 123}]).type_awared_get('key', str)
+
+    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
+        SourcesCollection([{'key': '123'}]).type_awared_get('key', int)
+
+    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
+        SourcesCollection([{'key': [123, 456]}]).type_awared_get('key', List[str])
+
+    with pytest.raises(TypeError, match=match('The value of the "key" field did not pass the type check.')):
+        SourcesCollection([{'key': ['123', '456']}]).type_awared_get('key', List[int])
+
+    with pytest.raises(KeyError):
+        SourcesCollection([{'key': 'kek'}]).type_awared_get('key2', str)
+
+    with pytest.raises(KeyError):
+        SourcesCollection([{'key': 'kek'}, {}]).type_awared_get('key2', str)
+
+    with pytest.raises(KeyError):
+        SourcesCollection([{}, {'key': 'kek'}, {}]).type_awared_get('key2', str)

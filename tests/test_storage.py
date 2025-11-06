@@ -1799,7 +1799,7 @@ def test_read_bad_typed_value_from_toml_source_for_not_deferred_value(toml_confi
     class SomeClass(Storage, sources=[TOMLSource(toml_config_path)]):
         field: int = Field(5)
 
-    with pytest.raises(TypeError, match=match('The value "1" (str) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -1815,7 +1815,7 @@ def test_read_bad_typed_value_from_yaml_source_for_not_deferred_value(yaml_confi
     class SomeClass(Storage, sources=[YAMLSource(yaml_config_path)]):
         field: int = Field(5)
 
-    with pytest.raises(TypeError, match=match('The value "1" (str) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -1831,7 +1831,7 @@ def test_read_bad_typed_value_from_json_source_for_not_deferred_value(json_confi
     class SomeClass(Storage, sources=[JSONSource(json_config_path)]):
         field: int = Field(5)
 
-    with pytest.raises(TypeError, match=match('The value "1" (str) of the "field" field does not match the type int.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -1847,7 +1847,7 @@ def test_read_bad_typed_value_from_toml_source_for_deferred_value(toml_config_pa
     class SomeClass(Storage, sources=[TOMLSource(toml_config_path)]):
         field: List[str] = Field(default_factory=list)
 
-    with pytest.raises(TypeError, match=match('The value "[14]" (list) of the "field" field does not match the type list.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -1863,7 +1863,7 @@ def test_read_bad_typed_value_from_yaml_source_for_deferred_value(yaml_config_pa
     class SomeClass(Storage, sources=[YAMLSource(yaml_config_path)]):
         field: List[str] = Field(default_factory=list)
 
-    with pytest.raises(TypeError, match=match('The value "[14]" (list) of the "field" field does not match the type list.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -1879,7 +1879,7 @@ def test_read_bad_typed_value_from_json_source_for_deferred_value(json_config_pa
     class SomeClass(Storage, sources=[JSONSource(json_config_path)]):
         field: List[str] = Field(default_factory=list)
 
-    with pytest.raises(TypeError, match=match('The value "[14]" (list) of the "field" field does not match the type list.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -2287,7 +2287,7 @@ def test_type_check_before_conversion_for_toml_source(toml_config_path):
     class SomeClass(Storage, sources=[TOMLSource(toml_config_path)]):
         field: str = Field('kek', conversion=lambda x: str(x))
 
-    with pytest.raises(TypeError, match=match('The value "15" (int) of the "field" field does not match the type str.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -2303,7 +2303,7 @@ def test_type_check_before_conversion_for_yaml_source(yaml_config_path):
     class SomeClass(Storage, sources=[YAMLSource(yaml_config_path)]):
         field: str = Field('kek', conversion=lambda x: str(x))
 
-    with pytest.raises(TypeError, match=match('The value "15" (int) of the "field" field does not match the type str.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 
@@ -2319,7 +2319,7 @@ def test_type_check_before_conversion_for_json_source(json_config_path):
     class SomeClass(Storage, sources=[JSONSource(json_config_path)]):
         field: str = Field('kek', conversion=lambda x: str(x))
 
-    with pytest.raises(TypeError, match=match('The value "15" (int) of the "field" field does not match the type str.')):
+    with pytest.raises(TypeError, match=match('The value of the "field" field did not pass the type check.')):
         SomeClass()
 
 

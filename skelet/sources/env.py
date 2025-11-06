@@ -1,12 +1,14 @@
+from math import isinf
 import os
 from typing import List, Dict, Type, TypeVar, Optional, Any, cast
 from functools import cached_property
 from copy import copy
+from dataclasses import MISSING
 
 from printo import descript_data_object
 from simtypes import from_string
 
-from skelet.sources.abstract import AbstractSource
+from skelet.sources.abstract import AbstractSource, SecondNone
 from skelet.errors import CaseError
 
 
@@ -45,8 +47,15 @@ class EnvSource(AbstractSource):
 
         return result
 
-    def type_awared_get(self, key: str, type: Type[ExpectedType]) -> ExpectedType:
-        return from_string(self[key], type)
+    def type_awared_get(self, key: str, hint: Type[ExpectedType], default: Any = SecondNone()) -> ExpectedType:
+        subresult = self.get(key, default)
+
+        if subresult is default:
+            if not isinstance(default, SecondNone):
+                return default
+            raise KeyError(key)
+
+        return from_string(subresult, hint)
 
     @classmethod
     def for_library(cls, library_name: str) -> List['EnvSource']:

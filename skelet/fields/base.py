@@ -62,6 +62,7 @@ class Field(Generic[ValueType]):
         self.name: Optional[str] = None
         self.base_class: Optional[Type[Storage]] = None
         self.exception: Optional[BaseException] = None
+        self.type_hint = Any
 
         self.lock: ContextLockProtocol = Lock()
 
@@ -76,6 +77,7 @@ class Field(Generic[ValueType]):
 
         with self.lock:
             self.name = name
+            self.type_hint = get_type_hints(owner).get(name, Any)
 
             if self.base_class is not None:
                 self.raise_exception_in_storage(TypeError(f'{self.get_field_name_representation()} cannot be used in {owner.__name__} because it is already used in {self.base_class.__name__}.'), raising_on=False)
@@ -167,14 +169,9 @@ class Field(Generic[ValueType]):
             owner.__field_names__.append(name)
 
     def check_type_hints(self, owner: Type[Storage], name: str, value: ValueType, strict: bool = False, raise_all: bool = False) -> None:
-        type_hint = get_type_hints(owner).get(name, MISSING)
-
-        if type_hint is MISSING:
-            return
-
-        if not check(value, type_hint, strict=strict):
-            origin = get_origin(type_hint)
-            type_hint_name = type_hint.__name__ if origin is None else origin.__name__ if hasattr(origin, '__name__') else repr(origin)  # type: ignore[union-attr]
+        if not check(value, self.type_hint, strict=strict):
+            origin = get_origin(self.type_hint)
+            type_hint_name = self.type_hint.__name__ if origin is None else origin.__name__ if hasattr(origin, '__name__') else repr(origin)  # type: ignore[union-attr]
             self.raise_exception_in_storage(TypeError(f'The value {self.get_value_representation(value)} of the {self.get_field_name_representation()} does not match the type {type_hint_name}.'), raise_all)
 
     def get_field_name_representation(self) -> str:

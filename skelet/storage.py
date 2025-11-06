@@ -33,8 +33,8 @@ class Storage:
                     self.__locks__[another_field_name] = lock
 
         for field_name in self.__field_names__:
-            content = self.__sources__.get(field_name, MISSING)
             field = getattr(type(self), field_name)
+            content = self.__sources__.type_awared_get(field_name, field.type_hint, MISSING)
             it_is_not_default = True
             if content is not MISSING:
                 field.check_type_hints(type(self), field_name, content, strict=True, raise_all=True)

@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 from full_match import match
 
@@ -83,3 +85,37 @@ def test_repr():
     assert repr(JSONSource('file.json')) == "JSONSource('file.json')"
     assert repr(JSONSource('file.json', allow_non_existent_files=False)) == "JSONSource('file.json', allow_non_existent_files=False)"
     assert repr(JSONSource('file.json', allow_non_existent_files=True)) == "JSONSource('file.json')"
+
+
+@pytest.mark.parametrize(
+    ['data'],
+    [
+        ({
+            'string': 'kek',
+            'number': 123,
+            'list_with_numbers': [123, 456],
+            'list_with_strings': ['123', '456'],
+        },),
+    ],
+)
+def test_type_awared_get(json_config_path):
+    assert JSONSource(json_config_path).type_awared_get('string', str) == 'kek'
+    assert JSONSource(json_config_path).type_awared_get('number', int) == 123
+    assert JSONSource(json_config_path).type_awared_get('list_with_numbers', List[int]) == [123, 456]
+    assert JSONSource(json_config_path).type_awared_get('list_with_numbers', List) == [123, 456]
+    assert JSONSource(json_config_path).type_awared_get('list_with_numbers', list) == [123, 456]
+
+    with pytest.raises(TypeError, match=match('The value of the "number" field did not pass the type check.')):
+        JSONSource(json_config_path).type_awared_get('number', str)
+
+    with pytest.raises(TypeError, match=match('The value of the "string" field did not pass the type check.')):
+        JSONSource(json_config_path).type_awared_get('string', int)
+
+    with pytest.raises(TypeError, match=match('The value of the "list_with_numbers" field did not pass the type check.')):
+        JSONSource(json_config_path).type_awared_get('list_with_numbers', List[str])
+
+    with pytest.raises(TypeError, match=match('The value of the "list_with_strings" field did not pass the type check.')):
+        JSONSource(json_config_path).type_awared_get('list_with_strings', List[int])
+
+    with pytest.raises(KeyError):
+        JSONSource(json_config_path).type_awared_get('key2', str)
