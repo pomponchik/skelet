@@ -20,12 +20,6 @@
 
 Collect all the settings of your project in one place, ensure type safety, thread safety and information security, and automatically validate all types and values. Use a simple and elegant "pythonic" syntax. Automatically load values from config files and environment variables.
 
-Promo ideas:
-- 🐍 Simple and elegant "pythonic" syntax
-- ⇆ Thread safety and rudimentary transactionality
-- ⛓️‍💥 No metaclasses
-
-
 ## Table of contents
 
 - [**Quick start**](#quick-start)
@@ -86,3 +80,8 @@ To do:
 Links to add here:
 
 - https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
+
+Promo ideas:
+- 🐍 Simple and elegant "pythonic" syntax
+- ⇆ Thread safety and rudimentary transactionality
+- ⛓️‍💥 No metaclasses
