@@ -23,8 +23,8 @@ Collect all the settings of your project in one place. Ensure type safety, threa
 ## Table of contents
 
 - [**Quick start**](#quick-start)
-- [**Documenting fields**](#documenting-fields)
 - [**Default values**](#default-values)
+- [**Documenting fields**](#documenting-fields)
 - [**Secret fields**](#secret-fields)
 - [**Type checking**](#type-checking)
 - [**Validation of values**](#validation-of-values)
@@ -85,31 +85,6 @@ description.name = 3.14
 That's not bad! But you will become a real master of storing settings when you read the entire text below.
 
 
-## Documenting fields
-
-Sometimes, in order not to forget what a particular field in the repository means, you may be tempted to accompany it with a comment:
-
-```python
-class TheSecretFormula(Storage):
-    the_secret_ingredient: str = Field('*')  # frogs' paws or something else nasty
-    ...
-```
-
-Don't do that! It is better to use the `doc` parameter in the field:
-
-```python
-class TheSecretFormula(Storage):
-    the_secret_ingredient: str = Field('*', doc="frogs' paws or something else nasty")
-    ...
-```
-
-Not only does this make the code self-documenting, you will also receive "free" reminders of the contents of this field in all exceptions that the library will raise:
-
-```python
-formula = TheSecretFormula(the_secret_ingredient=13)
-#> TypeError: The value "13" (int) of the "the_secret_ingredient" field (frogs' paws or something else nasty) does not match the type str.
-```
-
 ## Default values
 
 You must specify a default value for each field. It will be used until you somehow redefine it, or if no other value is found in the [data sources](#sources).
@@ -142,6 +117,32 @@ print(UnremarkableSettingsStorage())
 This option is preferable if you want to use a mutable object, such as a `list` or `dict`, as the default value. A new object will be created for this field every time a new storage object is created, so your data will not be "shuffled".
 
 
+## Documenting fields
+
+Sometimes, in order not to forget what a particular field in the repository means, you may be tempted to accompany it with a comment:
+
+```python
+class TheSecretFormula(Storage):
+    the_secret_ingredient: str = Field('*')  # frogs' paws or something else nasty
+    ...
+```
+
+Don't do that! It is better to use the `doc` parameter in the field:
+
+```python
+class TheSecretFormula(Storage):
+    the_secret_ingredient: str = Field('*', doc="frogs' paws or something else nasty")
+    ...
+```
+
+Not only does this make the code self-documenting, you will also receive "free" reminders of the contents of this field in all exceptions that the library will raise:
+
+```python
+formula = TheSecretFormula(the_secret_ingredient=13)
+#> TypeError: The value "13" (int) of the "the_secret_ingredient" field (frogs' paws or something else nasty) does not match the type str.
+```
+
+
 ## Secret fields
 
 Sometimes it is better not to see the contents of some fields to strangers. If such people can read, for example, the logs of your program, you may have problems. Secret fields have been invented for such cases:
@@ -168,7 +169,9 @@ In all other respects, "secret" fields behave the same as regular ones, you can 
 
 ## Type checking
 
+Links to add here:
 
+- https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
 
 
 
@@ -247,9 +250,7 @@ To do:
 - [ ] Reading parameters from the CLI
 - [ ] Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
 
-Links to add here:
 
-- https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
 
 Promo ideas:
 - 🐍 Simple and elegant "pythonic" syntax
