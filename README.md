@@ -21,9 +21,9 @@
 Collect all the settings in one place
 
 Promo ideas:
-- Simple and elegant syntax
-- Thread safety and rudimentary transactionality
-- No metaclasses
+- 🐍 Simple and elegant "pythonic" syntax
+- ⇆ Thread safety and rudimentary transactionality
+- ⛓️‍💥 No metaclasses
 
 
 ## Table of contents
