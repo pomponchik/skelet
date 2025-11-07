@@ -68,6 +68,7 @@ So, let's create an object of our class and look at it:
 ```python
 description = ManDescription(name='Evgeniy', age=32)
 print(description)
+#> ManDescription(name='Evgeniy', age=32)
 ```
 
 The object that we created is not just a storage for several fields. It can also validate values and verify typing. Let's try to slip to it something wrong:
