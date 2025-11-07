@@ -169,9 +169,37 @@ In all other respects, "secret" fields behave the same as regular ones, you can 
 
 ## Type checking
 
-Links to add here:
+You can specify a type hint for each field of your class. This is not necessary, but if you do, all values of this field will be automatically checked against the specified type, and if they do not match, a `TypeError` exception will be raised:
 
-- https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/
+```python
+class HumanMeasurements(Storage):
+    number_of_legs: int = Field(2)
+    number_of_hands: int = Field(2)
+
+measurements = HumanMeasurements()
+
+measurements.number_of_legs = 'two'
+#> TypeError: The value "two" (str) of the "number_of_legs" field does not match the type int.
+```
+
+The Python typing system has its limitations. According to the author, it is [too overcomplicated](https://www.reddit.com/r/Python/comments/10zdidm/why_type_hinting_sucks/), there are too many different concepts in it, and checking some of the type constraints in runtime is almost impossible. Therefore, the library supports only a subset of types from the typing module.
+
+*How does it work?* It is based on a simple type matching check via `isinstance`. A minimum number of additional annotations is also supported:
+
+- `Any` - means the same thing as the absence of an annotation.
+- `Union` (in the old style or in the new one, using the `|` operator) - means logical OR between types.
+- `Optional` (again, both in the old style and in the new one - via `|`) - means that a value of the specified type is expected, or `None`.
+- `Lists`, `dicts`, and `tuples` can be specified with the types they contain. By default, the contents of these containers are not checked, but this is done in relation to external [sources]((#sources)).
+
+The author deliberately does not try to implement full type checking in runtime. If you need more powerful verification, it's better to rely on static tools like `mypy`.
+
+The library also supports 2 additional types that allow you to narrow down the behavior of the basic int type:
+
+- `NaturalNumber` — as the name implies, only objects of type `int` greater than zero will be checked for this type.
+- `NonNegativeInt` — the same as `NaturalNumber`, but `0` is also a valid value.
+
+Please note that these types of constraints are checked only in runtime.
+
 
 
 
