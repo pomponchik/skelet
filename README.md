@@ -85,6 +85,59 @@ description.name = 3.14
 That's not bad! But you will become a real master of storing settings when you read the entire text below.
 
 
+## Documenting fields
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
