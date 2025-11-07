@@ -87,12 +87,28 @@ That's not bad! But you will become a real master of storing settings when you r
 
 ## Documenting fields
 
+Sometimes, in order not to forget what a particular field in the repository means, you may be tempted to accompany it with a comment:
 
+```python
+class TheSecretFormula(Storage):
+    the_secret_ingredient: str = Field('*')  # frogs' paws or something else nasty
+    ...
+```
 
+Don't do that! It is better to use the `doc` parameter in the field:
 
+```python
+class TheSecretFormula(Storage):
+    the_secret_ingredient: str = Field('*', doc="frogs' paws or something else nasty")
+    ...
+```
 
+Not only does this make the code self-documenting, you will also receive "free" reminders of the contents of this field in all exceptions that the library will raise:
 
-
+```python
+formula = TheSecretFormula(the_secret_ingredient=13)
+#> TypeError: The value "13" (int) of the "the_secret_ingredient" field (frogs' paws or something else nasty) does not match the type str.
+```
 
 
 
