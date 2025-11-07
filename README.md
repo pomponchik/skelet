@@ -18,7 +18,7 @@
 ![logo](https://raw.githubusercontent.com/pomponchik/skelet/develop/docs/assets/logo_8.svg)
 
 
-Collect all the settings of your project in one place. Ensure type safety, thread safety and information security, and automatically validate all types and values. Use a simple and elegant "pythonic" syntax. Automatically load values from config files and environment variables.
+Collect all the settings of your project in one place. Ensure type safety, thread safety and information security, and automatically validate all types and values. Use simple and elegant "pythonic" syntax. Automatically load values from config files and environment variables.
 
 ## Table of contents
 
