@@ -1,6 +1,9 @@
 from typing import TypeVar, Type, Any, Optional, Generic, Union, Callable, Dict, List, get_type_hints, get_origin, cast
 
-from types import EllipsisType
+try:
+    from types import EllipsisType
+except ImportError:
+    EllipsisType = type(...)  # type: ignore[misc]
 
 from threading import Lock
 from dataclasses import MISSING, _MISSING_TYPE
