@@ -1,5 +1,3 @@
-![logo](https://raw.githubusercontent.com/pomponchik/skelet/develop/docs/assets/logo_8.svg)
-
 <details>
   <summary>ⓘ</summary>
 
@@ -16,6 +14,10 @@
 [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/pomponchik/skelet)
 
 </details>
+
+![logo](https://raw.githubusercontent.com/pomponchik/skelet/develop/docs/assets/logo_8.svg)
+
+
 
 
 
