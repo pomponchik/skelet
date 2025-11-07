@@ -2481,3 +2481,36 @@ def test_get_value_from_sources_by_aliases_when_there_are_original_field_names_a
 
     assert instance.first_field == 1
     assert instance.second_field == 2
+
+
+def test_per_field_sources():
+    class SomeClass(Storage):
+        first_field: int = Field(123, sources=[MemorySource({'first_field': 1, 'second_field': 2})])
+        second_field: int = Field(456, sources=[MemorySource({'first_field': 1, 'second_field': 2})])
+
+    instance = SomeClass()
+
+    assert instance.first_field == 1
+    assert instance.second_field == 2
+
+
+def test_per_field_sources_in_conflict_with_class_source():
+    class SomeClass(Storage, sources=[MemorySource({'first_field': 4, 'second_field': 5})]):
+        first_field: int = Field(123, sources=[MemorySource({'first_field': 1, 'second_field': 2})])
+        second_field: int = Field(456, sources=[MemorySource({'first_field': 1})])
+
+    instance = SomeClass()
+
+    assert instance.first_field == 1
+    assert instance.second_field == 456
+
+
+def test_per_field_sources_with_ellipsis_in_conflict_with_class_source():
+    class SomeClass(Storage, sources=[MemorySource({'first_field': 4, 'second_field': 5})]):
+        first_field: int = Field(123, sources=[MemorySource({'first_field': 1, 'second_field': 2}), ...])
+        second_field: int = Field(456, sources=[MemorySource({'first_field': 1}), ...])
+
+    instance = SomeClass()
+
+    assert instance.first_field == 1
+    assert instance.second_field == 5
