@@ -2459,3 +2459,25 @@ def test_get_something_from_env(monkeypatch):
     assert instance.field == 1
     assert instance.another_field == 'kek'
     assert instance.third_field == [1, 2, 3]
+
+
+def test_get_value_from_sources_by_aliases():
+    class SomeClass(Storage, sources=[MemorySource({'field': 1, 'a-b-c': 2})]):
+        first_field: int = Field(123, alias='field')
+        second_field: int = Field(456, alias='a-b-c')
+
+    instance = SomeClass()
+
+    assert instance.first_field == 1
+    assert instance.second_field == 2
+
+
+def test_get_value_from_sources_by_aliases_when_there_are_original_field_names_available():
+    class SomeClass(Storage, sources=[MemorySource({'field': 1, 'a-b-c': 2, 'first_field': 3, 'second_field': 4})]):
+        first_field: int = Field(123, alias='field')
+        second_field: int = Field(456, alias='a-b-c')
+
+    instance = SomeClass()
+
+    assert instance.first_field == 1
+    assert instance.second_field == 2
