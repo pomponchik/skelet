@@ -112,7 +112,7 @@ formula = TheSecretFormula(the_secret_ingredient=13)
 
 ## Default values
 
-You must specify a default value for each field. It will be used until you somehow redefine it, or if no other value is found in the data sources.
+You must specify a default value for each field. It will be used until you somehow redefine it, or if no other value is found in the [data sources](#sources).
 
 There are 2 types of default values:
 
