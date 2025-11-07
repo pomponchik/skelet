@@ -24,6 +24,7 @@ class Field(Generic[ValueType]):
         /,
         default_factory: Optional[Callable[[], ValueType]] = None,
         doc: Optional[str] = None,
+        alias: Optional[str] = None,
         read_only: bool = False,
         validation: Optional[Union[Dict[str, Callable[[ValueType], bool]], Callable[[ValueType], bool]]] = None,
         validate_default: bool = True,
@@ -50,6 +51,7 @@ class Field(Generic[ValueType]):
         self._default_factory = default_factory
         self.read_only = read_only
         self.doc = doc
+        self.alias = alias
         self.validation = validation
         self.validate_default = validate_default
         self.secret = secret
@@ -77,6 +79,8 @@ class Field(Generic[ValueType]):
 
         with self.lock:
             self.name = name
+            if self.alias is None:
+                self.alias = self.name
             self.type_hint = get_type_hints(owner).get(name, Any)
 
             if self.base_class is not None:
