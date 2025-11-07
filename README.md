@@ -35,7 +35,7 @@ Collect all the settings of your project in one place, ensure type safety, threa
   - [**JSON files**](#json-files)
   - [**YAML files**](#yaml-files)
   - [**Collecting sources**](#collecting-sources)
-- [**Type conversion**](#type-conversion)
+- [**Converting values**](#converting-values)
 - [**Thread safety**](#thread-safety)
 - [**Callbacks for changes**](#callbacks-for-changes)
 - [**Read only fields**](#read-only-fields)
@@ -71,7 +71,7 @@ print(description)
 #> ManDescription(name='Evgeniy', age=32)
 ```
 
-The object that we created is not just a storage for several fields. It can also validate values and verify typing. Let's try to slip to it something wrong:
+The object that we created is not just a storage for several fields. It can also [validate values](#validation-of-values) and [verify typing](#type-checking). Let's try to slip to it something wrong:
 
 ```python
 description.age = -5
@@ -165,6 +165,8 @@ secrets.who_killed_kennedy = 'russians'
 
 In all other respects, "secret" fields behave the same as regular ones, you can read values and write new ones.
 
+
+## Type checking
 
 
 
