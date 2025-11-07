@@ -41,6 +41,50 @@ Collect all the settings of your project in one place, ensure type safety, threa
 - [**Read only fields**](#read-only-fields)
 
 
+## Quick start
+
+Install it:
+
+```bash
+pip install skelet
+```
+
+You can also quickly try out this and other packages without having to install using [instld](https://github.com/pomponchik/instld).
+
+Now let's create our first storage class:
+
+```python
+from skelet import Storage, Field, NonNegativeInt
+
+class ManDescription(Storage):
+    name: str = Field('*')
+    age: NonNegativeInt = Field(0, validation={'You must be 18 or older to feel important': lambda x: x >= 18}, validate_default=False)
+```
+
+You can immediately notice that this is very similar to dataclasses or models from Pydantic. Yes, it's very similar, but it's better sharpened specifically for use for storing settings.
+
+So, let's create an object of our class and look at it:
+
+```python
+description = ManDescription(name='Evgeniy', age=32)
+print(description)
+```
+
+The object that we created is not just a storage for several fields. It can also validate values and verify typing. Let's try to slip to it something wrong:
+
+```python
+description.age = -5
+#> TypeError: The value "-5" (int) of the "age" field does not match the type NonNegativeInt.
+description.age = 5
+#> ValueError: You must be 18 or older to feel important
+description.name = 3.14
+#> TypeError: The value "3.14" (float) of the "name" field does not match the type str.
+```
+
+
+
+
+
 
 One object with a configuration for your project.
 
@@ -72,6 +116,7 @@ It's ready now:
 
 To do:
 
+- [ ] The ability to not assign default values in any way
 - [ ] The ability to disable type checking for a class through class arguments
 - [ ] Class inheritance support
 - [ ] Reading parameters from the CLI
