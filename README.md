@@ -247,8 +247,24 @@ numbers.zero = -1
 All values are validated, including default values. However, sometimes you may need to disable validation only for default values, for example, if you use some identifiers for the absence of real values ([`None`](https://docs.python.org/3/library/constants.html#None), [`MISSING`](https://docs.python.org/3/library/dataclasses.html#dataclasses.MISSING), [`NaN`](https://docs.python.org/3/library/math.html#math.isnan), an empty string, or something similar). In this case, pass `True` as the `validate_default` argument:
 
 ```python
-
+class PatientsCard(Storage):
+    had_rubella: bool | None = Field(
+        None,
+        validation: lambda x: isinstance(x, bool),
+        validate_default=False,  # The default value will not be checked.
+        doc='we may not know if a person has had rubella, but if we do, then either yes or no',
+    )
+    ...
 ```
+
+
+## Conflicts between fields
+
+Sometimes, individual field values are [acceptable](#validation-of-values), but certain combinations of them are impossible. For such cases, there is a separate type of value check—conflict checking.
+
+
+
+
 
 
 
