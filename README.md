@@ -240,7 +240,7 @@ numbers.zero = -1
 #> ValueError: Zero is definitely greater than your value.
 ```
 
-> ⓘ If the value does not pass validation, not only will an exception be thrown, but the value will also not be saved for that field. This is similar to how constraints work in databases.
+> ⓘ If the value does not pass validation, not only will an exception be thrown, but the value will also not be saved for that field. This is similar to how [constraints](https://en.wikipedia.org/wiki/Check_constraint) work in databases.
 
 > ⓘ Validation occurs after [type checking](#type-checking), so you can be sure that types match when your validation function is called.
 
