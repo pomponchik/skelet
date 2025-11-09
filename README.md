@@ -242,6 +242,8 @@ numbers.zero = -1
 
 > If the value does not pass validation, not only will an exception be thrown, but the value will also not be saved for that field. This is similar to how constraints work in databases.
 
+> Validation occurs after [type checking](#type-checking), so you can be sure that types match when your validation function is called.
+
 
 
 
