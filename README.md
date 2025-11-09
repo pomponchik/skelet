@@ -61,7 +61,7 @@ class ManDescription(Storage):
     age: NonNegativeInt = Field(0, validation={'You must be 18 or older to feel important': lambda x: x >= 18}, validate_default=False)
 ```
 
-You can immediately notice that this is very similar to dataclasses or models from Pydantic. Yes, it's very similar, but it's better sharpened specifically for use for storing settings.
+You can immediately notice that this is very similar to [dataclasses](https://docs.python.org/3/library/dataclasses.html) or [models from Pydantic](https://docs.pydantic.dev/latest/api/base_model/). Yes, it's very similar, but it's better sharpened specifically for use for storing settings.
 
 So, let's create an object of our class and look at it:
 
@@ -244,6 +244,11 @@ numbers.zero = -1
 
 > ⓘ Validation occurs after [type checking](#type-checking), so you can be sure that types match when your validation function is called.
 
+All values are validated, including default values. However, sometimes you may need to disable validation only for default values, for example, if you use some identifiers for the absence of real values ([`None`](https://docs.python.org/3/library/constants.html#None), [`MISSING`](https://docs.python.org/3/library/dataclasses.html#dataclasses.MISSING), [`NaN`](https://docs.python.org/3/library/math.html#math.isnan), an empty string, or something similar). In this case, pass `True` as the `validate_default` argument:
+
+```python
+
+```
 
 
 
