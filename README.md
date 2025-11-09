@@ -205,11 +205,42 @@ Please note that these types of constraints are checked only in runtime.
 
 In addition to type checking, you can specify arbitrary conditions by which field values will be checked.
 
+The simplest way to validate a specific field is to pass a lambda function that returns a `bool` value as the `validation` argument for the field:
+
+```python
+class ScaryNumbers(Storage):
+    unlucky_number: int = Field(13, validation=lambda x: x in [13, 17, 4, 9, 40], doc='a number that is considered unlucky by a particular people')
+    number_of_the_beast: int = Field(666, validation=lambda x: x in [616, 666], doc='different translations of the Bible give different numbers for the beast')
+
+numbers = ScaryNumbers()
+```
+
+This function should return `True` if the value is valid, and `False` if it is not. If you try to assign an invalid value to the field, an exception will be raised:
 
 
+```python
+numbers.unlucky_number = 7
+#> ValueError: The value "7" (int) of the "unlucky_number" field (a number that is considered unlucky by a particular people) does not match the validation.
+numbers.number_of_the_beast = 555
+#> ValueError: The value "555" (int) of the "number_of_the_beast" field (different translations of the Bible give different numbers for the beast) does not match the validation.
+```
 
+You can also pass a dictionary as a `validation` parameter, where the keys are messages that will accompany the raised exceptions, and the values are the same functions that return boolean values:
 
+```python
+class Numbers(Storage):
+    zero: int = Field(0, validation={'Zero is definitely greater than your value.': lambda x: x > -1, 'Zero is definitely less than your value.': lambda x: x < 1})
+    ...
 
+numbers = Numbers()
+
+numbers.zero = 1
+#> ValueError: Zero is definitely less than your value.
+numbers.zero = -1
+#> ValueError: Zero is definitely greater than your value.
+```
+
+> If the value does not pass validation, not only will an exception be thrown, but the value will also not be saved for that field. This is similar to how constraints work in databases.
 
 
 
@@ -280,6 +311,7 @@ To do:
 - [ ] Context manager like https://confz.readthedocs.io/en/latest/usage/context_manager.html
 - [ ] If you try to use environment variables on Windows in case-dependency mode, an exception will be raised
 - [ ] Check that the action is triggered only after the assignment
+- [ ] Add the ability to pass a list of functions for validating values
 
 
 
