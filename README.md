@@ -283,7 +283,7 @@ dossier.eats_pork = True
 #> ValueError: The new "True" (bool) value of the "eats_pork" field conflicts with the "True" (bool) value of the "is_jew" field (jews do not eat pork).
 ```
 
-> ⓘ Conflict checking only happens after type and individual value checking. This means that only values that are guaranteed to be valid in terms of individuality will be passed to your conflict checking function.
+> ⓘ Conflict checking only happens after [type](#type-checking) and individual [value checking](#validation-of-values). This means that only values that are guaranteed to be valid in terms of individuality will be passed to your conflict checking function.
 
 > ⓘ More details on this will be provided in the section on [thread safety](#thread-safety), but here it is useful to know that mutexes for fields with specified conflict conditions are combined. This means that checking fields for conflicts is thread-safe.
 
