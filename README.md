@@ -322,7 +322,7 @@ However, I do not recommend disabling reverse checks - they ensure that the cont
 So far, we have discussed that fields can have default values, as well as values obtained during the program operation. However, there is a third type of value: values loaded from data sources. The library supports several data sources:
 
 - Configuration files in various formats ([`TOML`](https://toml.io/en/), [`YAML`](https://en.wikipedia.org/wiki/YAML), and [`JSON`](https://en.wikipedia.org/wiki/JSON)).
-- [Environment variables](https://en.wikipedia.org/wiki/Environment_variable).
+- [Environment variables](#environment-variables).
 - Support for new sources, such as CLI parameters, will be available soon.
 
 The current value of each class field is determined by the following order:
