@@ -323,14 +323,48 @@ So far, we have discussed that fields can have default values, as well as values
 
 - Configuration files in various formats ([`TOML`](https://toml.io/en/), [`YAML`](https://en.wikipedia.org/wiki/YAML), and [`JSON`](https://en.wikipedia.org/wiki/JSON)).
 - [Environment variables](https://en.wikipedia.org/wiki/Environment_variable).
+- Support for new sources, such as CLI parameters, will be available soon.
+
+The current value of each class field is determined by the following order:
 
 ```mermaid
 graph TD;
   A[Default values] --> B(Data sources in the order listed) --> C(The values set in the runtime)
 ```
 
+That is, values obtained from sources have higher priority than default values, but can be overwritten (unless you [prohibit it](#read-only-fields)) by other values at runtime.
 
+There are two ways to specify a list of sources:
 
+- For the **whole class**.
+- For a **specific field**.
+
+To specify a list of sources for the entire class, pass it to the class constructor:
+
+```python
+from skelet import TOMLSource
+
+class MyClass(Storage, sources=[TOMLSource('pyproject.toml', table='tool.my_tool_name')]):
+    ...
+```
+
+Also use the `sources` parameter to specify a list of sources for a specific field:
+
+```python
+class MyClass(Storage):
+    some_field = Field('some_value', sources=[TOMLSource('pyproject.toml', table='tool.my_tool_name')])
+```
+
+You can also combine these two options by specifying one list of sources for the class as a whole and another list for a specific field. Keep in mind that in this case, the list of sources for this field will be completely rewritten. If you want this field to use both its own set of sources and the class's list of sources, specify an ellipsis at the end of the list for the field:
+
+```python
+class MyClass(Storage, sources=[TOMLSource('pyproject.toml', table='tool.my_tool_name')]):
+    some_field = Field('some_value', sources=[TOMLSource('config_for_this_field.toml'), ...])
+```
+
+Each data source is a dictionary-like object from which the values of a specific field are retrieved by the key in the form of the field name. If no value is found in any of the sources, only then will the default value be used. The order in which the contents of the sources are checked corresponds to the order in which the sources themselves are listed, with sources for a field having higher priority than sources for the class as a whole.
+
+Read more about the available types of sources below.
 
 
 
