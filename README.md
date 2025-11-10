@@ -408,6 +408,16 @@ EnvSource(postfix='_postfix')  # For attribute "field_name", the search will be 
 
 > ⓘ It is important to understand that `EnvSource` objects cache all environment variable values. A complete cache of all variables is created when the key is searched for the first time. Currently, there is no option to clear the cache; the object can only be replaced entirely.
 
+Environment variables can be used to store values of only certain data types. Here are the supported options:
+
+- `str`- any string can be interpreted as a `str` type.
+- `int` - any integers.
+- `float` - any floating-point numbers, including infinities and [`NaN`](https://en.wikipedia.org/wiki/NaN).
+- `bool`- the strings `"yes"`, `"True"`, and `"true"` are interpreted as `True`, while `"no"`, `"False"`, or `"false"` are interpreted as `False`.
+- `list` - lists in [`json`](https://en.wikipedia.org/wiki/JSON) format are expected.
+- `tuple` - lists in [`json`](https://en.wikipedia.org/wiki/JSON) format are expected. This is the only type where the value produced does not match the passed type, the returned value is always a list.
+- `dict` - dicts in [`json`](https://en.wikipedia.org/wiki/JSON) format are expected.
+
 
 ## TOML files and pyproject.toml
 
