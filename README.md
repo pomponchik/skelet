@@ -373,7 +373,7 @@ Read more about the available types of sources below.
 
 ## Environment variables
 
-For many developers, [environment variables](https://en.wikipedia.org/wiki/Environment_variable) are the first method that comes to mind for [obtaining application settings](#sources) from outside sources.
+For many developers, [environment variables](https://en.wikipedia.org/wiki/Environment_variable) are the first method that comes to mind for [obtaining application settings](#sources) from outside sources. To connect environment variables to your class or class field, use the `EnvSource` class:
 
 
 
