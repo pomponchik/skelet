@@ -325,7 +325,8 @@ So far, we have discussed that fields can have default values, as well as values
 - [Environment variables](https://en.wikipedia.org/wiki/Environment_variable).
 
 ```mermaid
-A[Default values] --> B(Data sources in the order listed) --> C(The values set in the runtime)
+graph TD;
+  A[Default values] --> B(Data sources in the order listed) --> C(The values set in the runtime)
 ```
 
 
