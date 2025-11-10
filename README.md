@@ -380,7 +380,7 @@ class MyClass(Storage, sources=[EnvSource()]):
     some_field = Field('some_value')
 ```
 
-By default, environment variables are searched for by key in the form of an attribute name, but the layout is ignored. If you want to make the search case-sensitive, pass `True` as the `case_sensitive` parameter:
+By default, environment variables are searched for by key in the form of an attribute name, but the case is ignored. If you want to make the search case-sensitive, pass `True` as the `case_sensitive` parameter:
 
 ```python
 EnvSource(case_sensitive=True)
