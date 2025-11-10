@@ -571,7 +571,23 @@ storage.field = 55
 > ⓘ The callback will be called only if the new value passes all the checks. The callback call is closed by the field mutex: two callbacks for the same field of the same object cannot be executed simultaneously. Thus, the callback call is completely [thread-safe](#thread-safety).
 
 
+## Read only fields
 
+You can protect individual fields from being able to change their values. To do this, pass `read_only=True` to the field constructor:
+
+```python
+class EternalTruths(Storage):
+    inevitability: str = Field('Two things are certain: death and taxes', read_only=True)
+
+storage = EternalTruths()
+
+print(storage.inevitability)
+#> Two things are certain: death and taxe
+storage.inevitability = 'There are a lot of unavoidable things.'
+#> AttributeError: "inevitability" field is read-only.
+```
+
+> ⓘ This restriction only applies to user code. Default values and loading values from sources will continue to function.
 
 
 
