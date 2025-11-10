@@ -410,7 +410,7 @@ EnvSource(postfix='_postfix')  # For attribute "field_name", the search will be 
 
 Environment variables can be used to store values of only certain data types. Here are the supported options:
 
-- `str`- any string can be interpreted as a `str` type.
+- `str`- any string can be interpreted as a `str` type. If you used the `Any` annotation for the field or did not specify annotations at all, the value will also be interpreted as a string.
 - `int` - any integers.
 - `float` - any floating-point numbers, including infinities and [`NaN`](https://en.wikipedia.org/wiki/NaN).
 - `bool`- the strings `"yes"`, `"True"`, and `"true"` are interpreted as `True`, while `"no"`, `"False"`, or `"false"` are interpreted as `False`.
