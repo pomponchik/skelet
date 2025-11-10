@@ -399,7 +399,7 @@ Similar to the `prefix`, you can also specify a `postfix` — a piece of the key
 EnvSource(postfix='_postfix')  # For attribute "field_name", the search will be performed by key "field_name_postfix".
 ```
 
-> ⓘ It is important to understand that EnvSource objects cache all environment variable values. A complete cache of all variables is created when the key is searched for the first time. Currently, there is no option to clear the cache; the object can only be replaced entirely.
+> ⓘ It is important to understand that `EnvSource` objects cache all environment variable values. A complete cache of all variables is created when the key is searched for the first time. Currently, there is no option to clear the cache; the object can only be replaced entirely.
 
 
 
