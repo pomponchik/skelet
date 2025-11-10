@@ -260,18 +260,62 @@ class PatientsCard(Storage):
 
 ## Conflicts between fields
 
-Sometimes, individual field values are [acceptable](#validation-of-values), but certain combinations of them are impossible. For such cases, there is a separate type of value check — conflict checking. This validation is a little more complicated than for individual values. To enable it, you need to pass a dictionary as parameter X, whose keys are the names of other class fields, and whose values are functions that return `bool`, answering the question «is there a conflict with the value of this field?»:
+Sometimes, individual field values are [acceptable](#validation-of-values), but certain combinations of them are impossible. For such cases, there is a separate type of value check — conflict checking. This validation is a little more complicated than for individual values. To enable it, you need to pass a dictionary as parameter `conflicts`, whose keys are the names of other class fields, and whose values are functions that return `bool`, answering the question «is there a conflict with the value of this field?»:
 
 ```python
 class Dossier(Storage):
     name: str | None = Field(None)
-    is_jew: bool | None = Field(None)
+    is_jew: bool | None = Field(None, doc='jews do not eat pork')
     eats_pork: bool | None = Field(
         None,
         conflicts={'is_jew': lambda old, new, other_old, other_new: new is True and (other_old is True or other_new is True)},
     )
     ...
 ```
+
+When we attempt to redefine the value of a field that has conflict conditions defined with another field, these conditions will be checked and, if a conflict is confirmed, the operation will be stopped by throwing an exception:
+
+```python
+dossier = Dossier(name='John')
+
+dossier.is_jew = True
+dossier.eats_pork = True
+#> ValueError: The new "True" (bool) value of the "eats_pork" field conflicts with the "True" (bool) value of the "is_jew" field (jews do not eat pork).
+```
+
+> ⓘ Conflict checking only happens after type and individual value checking. This means that only values that are guaranteed to be valid in terms of individuality will be passed to your conflict checking function.
+
+The function that checks for a conflict with the value of another field takes 4 positional arguments:
+
+- The old value of the current field.
+- New value of the current field.
+- The old value of the field with which a conflict is possible.
+- The new value of the field with which a conflict is possible.
+
+But why can there be two values for another field? The fact is that, by default, conflict conditions are checked when values are changed not only for the field for which they are set, but also for potentially conflicting fields:
+
+```python
+dossier.eats_pork = True
+dossier.is_jew = True
+#> ValueError: The new "True" (bool) value of the "is_jew" field (jews do not eat pork) conflicts with the "True" (bool) value of the "eats_pork" field.
+```
+
+Reverse checks can be disabled by passing `False` as the `reverse_conflicts` parameter:
+
+```python
+    ...
+    eats_pork: bool | None = Field(
+        None,
+        conflicts={'is_jew': lambda old, new, other_old, other_new: new is True and (other_old is True or other_new is True)},
+        reverse_conflicts=False,  # Conflicts will now only be checked when the values of this field change, but not when other fields change.
+    )
+    ...
+```
+
+
+
+
+
 
 
 
