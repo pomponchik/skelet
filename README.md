@@ -317,6 +317,16 @@ Reverse checks can be disabled by passing `False` as the `reverse_conflicts` par
 However, I do not recommend disabling reverse checks - they ensure that the contents of the fields are consistent with each other.
 
 
+## Sources
+
+So far, we have discussed that fields can have default values, as well as values obtained during the program operation. However, there is a third type of value: values loaded from data sources. The library supports several data sources:
+
+- Configuration files in various formats ([`TOML`](https://toml.io/en/), [`YAML`](https://en.wikipedia.org/wiki/YAML), and [`JSON`](https://en.wikipedia.org/wiki/JSON)).
+- [Environment variables](https://en.wikipedia.org/wiki/Environment_variable).
+
+```mermaid
+A[Default values] --> B(Data sources in the order listed) --> C(The values set in the runtime)
+```
 
 
 
