@@ -416,7 +416,7 @@ The [`TOML`](https://toml.io/en/) format is currently the most preferred file fo
 To read the configuration from a specific file, create a `TOMLSource` object passing the file name or a [Path-like object](https://docs.python.org/3/library/pathlib.html#basic-use) to the constructor:
 
 ```python
-class MyClass(Storage, sources=[TOMLSource('pyproject.toml')]):
+class MyClass(Storage, sources=[TOMLSource('my_config.toml')]):
     ...
 ```
 
