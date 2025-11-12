@@ -2527,3 +2527,26 @@ def test_default_value_is_not_set():
 
     assert instance.first_field == 5
     assert instance.second_field == 10
+
+
+
+def test_default_value_is_not_set_but_there_is_source():
+    class SomeClass(Storage, sources=[MemorySource({'first_field': 4, 'second_field': 5})]):
+        first_field: int = Field()
+        second_field: int = Field()
+
+    instance = SomeClass()
+
+    assert instance.first_field == 4
+    assert instance.second_field == 5
+
+
+def test_default_value_is_not_set_but_there_are_per_field_sources():
+    class SomeClass(Storage):
+        first_field: int = Field(sources=[MemorySource({'first_field': 4, 'second_field': 5})])
+        second_field: int = Field(sources=[MemorySource({'first_field': 4, 'second_field': 5})])
+
+    instance = SomeClass()
+
+    assert instance.first_field == 4
+    assert instance.second_field == 5
