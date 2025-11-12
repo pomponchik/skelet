@@ -16,7 +16,7 @@ ExpectedType = TypeVar('ExpectedType')
 class EnvSource(AbstractSource):
     def __init__(self, prefix: Optional[str] = '', postfix: Optional[str] = '', case_sensitive: bool = False) -> None:
         if platform.system() == 'Windows' and case_sensitive:
-            raise OSError('On Windows, the environment variables are case-independent.')
+            raise OSError('On Windows, the environment variables are case-independent.')  # pragma: no cover
 
         self.prefix = prefix
         self.postfix = postfix
