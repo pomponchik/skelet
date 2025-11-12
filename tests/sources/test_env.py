@@ -117,8 +117,8 @@ def test_read_existing_key(monkeypatch):
         with pytest.raises(KeyError):
             EnvSource(case_sensitive=True)['LOL']
     else:
-        assert EnvSource(case_sensitive=True).type_awared_get('LOL', str) == '1'
-        assert EnvSource(case_sensitive=True)['LOL'] == '1'
+        assert EnvSource().type_awared_get('LOL', str) == '1'
+        assert EnvSource()['LOL'] == '1'
 
 
 def test_type_awared_get(monkeypatch):
