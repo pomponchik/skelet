@@ -164,10 +164,12 @@ def test_read_with_prefix(monkeypatch):
     if platform.system() != 'Windows':
         with pytest.raises(KeyError):
             EnvSource(prefix='library_', case_sensitive=True)['key']
+        assert EnvSource(prefix='LIBRARY_', case_sensitive=True)['KEY'] == 'kek'
     else:
-        assert EnvSource(prefix='library_', case_sensitive=True)['key'] == 'kek'
+        assert EnvSource(prefix='library_')['key'] == 'kek'
+        assert EnvSource(prefix='LIBRARY_')['KEY'] == 'kek'
 
-    assert EnvSource(prefix='LIBRARY_', case_sensitive=True)['KEY'] == 'kek'
+    assert EnvSource(prefix='LIBRARY_')['KEY'] == 'kek'
 
 
 def test_read_with_postfix(monkeypatch):
@@ -178,10 +180,12 @@ def test_read_with_postfix(monkeypatch):
     if platform.system() != 'Windows':
         with pytest.raises(KeyError):
             EnvSource(postfix='_key', case_sensitive=True)['library']
+        assert EnvSource(postfix='_KEY', case_sensitive=True)['LIBRARY'] == 'kek'
     else:
-        assert EnvSource(postfix='_key', case_sensitive=True)['library'] == 'kek'
+        assert EnvSource(postfix='_key')['library'] == 'kek'
+        assert EnvSource(postfix='_KEY')['LIBRARY'] == 'kek'
 
-    assert EnvSource(postfix='_KEY', case_sensitive=True)['LIBRARY'] == 'kek'
+    assert EnvSource(postfix='_KEY')['LIBRARY'] == 'kek'
 
 
 def test_read_with_prefix_and_postfix(monkeypatch):
@@ -192,10 +196,11 @@ def test_read_with_prefix_and_postfix(monkeypatch):
     if platform.system() != 'Windows':
         with pytest.raises(KeyError):
             EnvSource(prefix='library_', postfix='_postfix', case_sensitive=True)['key']
+        assert EnvSource(prefix='LIBRARY_', postfix='_POSTFIX', case_sensitive=True)['KEY'] == 'kek'
     else:
-        assert EnvSource(prefix='library_', postfix='_postfix', case_sensitive=True)['key'] == 'kek'
+        assert EnvSource(prefix='library_', postfix='_postfix')['key'] == 'kek'
 
-    assert EnvSource(prefix='LIBRARY_', postfix='_POSTFIX', case_sensitive=True)['KEY'] == 'kek'
+    assert EnvSource(prefix='LIBRARY_', postfix='_POSTFIX')['KEY'] == 'kek'
 
 
 @pytest.mark.skipif(platform.system() != 'Windows', reason='On Windows, the environment variables are case-independent.')
