@@ -123,7 +123,7 @@ Sometimes, in order not to forget what a particular field in the repository mean
 
 ```python
 class TheSecretFormula(Storage):
-    the_secret_ingredient: str = Field('*')  # frogs' paws or something else nasty
+    the_secret_ingredient: str = Field()  # frogs' paws or something else nasty
     ...
 ```
 
@@ -131,7 +131,7 @@ Don't do that! It is better to use the `doc` parameter in the field:
 
 ```python
 class TheSecretFormula(Storage):
-    the_secret_ingredient: str = Field('*', doc="frogs' paws or something else nasty")
+    the_secret_ingredient: str = Field(doc="frogs' paws or something else nasty")
     ...
 ```
 
@@ -217,7 +217,6 @@ numbers = ScaryNumbers()
 
 This function should return `True` if the value is valid, and `False` if it is not. If you try to assign an invalid value to the field, an exception will be raised:
 
-
 ```python
 numbers.unlucky_number = 7
 #> ValueError: The value 7 (int) of the "unlucky_number" field (a number that is considered unlucky by a particular people) does not match the validation.
@@ -264,7 +263,7 @@ Sometimes, individual field values are [acceptable](#validation-of-values), but 
 
 ```python
 class Dossier(Storage):
-    name: str | None = Field(None)
+    name: str = Field()
     is_jew: bool | None = Field(None, doc='jews do not eat pork')
     eats_pork: bool | None = Field(
         None,
