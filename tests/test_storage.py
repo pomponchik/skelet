@@ -1921,10 +1921,6 @@ def test_type_check_with_supertypes():
 
 
 def test_wrong_defaults():
-    with pytest.raises(ValueError, match=match('The default value or default value factory must be specified for the field.')):
-        class SomeClass(Storage):
-            field: List[str] = Field()
-
     with pytest.raises(ValueError, match=match('You can define a default value or a factory for default values, but not all at the same time.')):
         class SomeClass(Storage):
             field: List[str] = Field([], default_factory=list)
@@ -2514,3 +2510,20 @@ def test_per_field_sources_with_ellipsis_in_conflict_with_class_source():
 
     assert instance.first_field == 1
     assert instance.second_field == 5
+
+
+def test_default_value_is_not_set():
+    class SomeClass(Storage):
+        first_field: int = Field()
+        second_field: int = Field()
+
+    with pytest.raises(ValueError, match=match('The value for the "first_field" field is undefined. Set the default value, or specify the value when creating the instance.')):
+        SomeClass()
+
+    with pytest.raises(ValueError, match=match('The value for the "second_field" field is undefined. Set the default value, or specify the value when creating the instance.')):
+        SomeClass(first_field=5)
+
+    instance = SomeClass(first_field=5, second_field=10)
+
+    assert instance.first_field == 5
+    assert instance.second_field == 10
